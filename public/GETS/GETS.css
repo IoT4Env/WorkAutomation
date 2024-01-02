@@ -1,0 +1,29 @@
+table{
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: red;
+}
+
+.RigaPrincipale{
+    background-color: greenyellow;
+}
+
+.NomeColonna{
+    text-align: center;
+    width: 250px;
+    background-color: yellow;
+}
+
+img{
+    width: 25px;
+    height: 25px;
+}
+
+tr{
+    background-color: blue;
+}
+
+th{
+    background-color: aquamarine;
+}

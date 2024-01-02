@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="index.css" type="text/css" rel="stylesheet">
+
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="CRUD">
+        <a href="/CRUD">
+            <button id="GETS">GETS</button>
+        </a>
+
+        <label>Filtra per Nome
+            <select id="Nomi">
+                <option> </option>
+                {{%ListaNomi%}}
+            </select>
+        </label>
+        <a id="GET-Link" href="/CRUD/Nome=%Nome%">
+            <button id="GET">GET</button>
+        </a>
+
+        <form autocomplete="off" action="/CRUD/" method="POST">
+            <label>Nome
+                <input type="text" name="nome">
+            </label>
+            <label>Cognome
+                <input type="text" name="cognome">
+            </label>
+            <label>Indirizzo
+                <input type="text" name="indirizzo">
+            </label>
+            <label>Posta
+                <input type="text" name="posta">
+            </label>
+            <input type="submit" value="INSERT" />
+        </form>
+    </div>
+</body>
+
+<script src="action.js"></script>
+
+</html>
