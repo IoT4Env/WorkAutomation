@@ -52,7 +52,6 @@ crud.get('/Nome=:Nome', (req, res) => {
             , (err, rows) => {
                 if (err) {
                     console.log(err)
-                    console.log('Ciao');
                     res.statusCode = 500
                     res.send('Errore ottenimento dati')
                 }
