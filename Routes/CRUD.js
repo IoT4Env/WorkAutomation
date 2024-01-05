@@ -13,7 +13,7 @@ const fs = require('fs');
 
 let modifiedRoute = __dirname.replace('\Routes', '/')
 
-let htmlContentTemplate = fs.readFileSync(modifiedRoute + 'public/GETS/ContentBody.html', 'utf-8')
+let htmlContentTemplate = fs.readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
 let htmlGetResponseTemplate = fs.readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
 let htmlPostResponseTemplate = fs.readFileSync(modifiedRoute + 'public/POST/POST.html', 'utf-8')
 let htmlDeleteResponseTemplate = fs.readFileSync(modifiedRoute + 'public/DELETE/DELETE.html', 'utf-8')
@@ -77,7 +77,7 @@ crud.post('/', (req, res) => {
     };
     if (Object.values(jsonObject).includes(null)) {
         res.status(500).send('<p>Non tutti i campi compilati</p><br>' + returnBackButton)
-        return;
+        return
     }
 
     modelliDB.serialize(_ => {
@@ -89,6 +89,12 @@ crud.post('/', (req, res) => {
                 res.status(201).send(htmlPostResponseTemplate + returnBackButton)
             })
     })
+})
+
+crud.get('/update/', (req, res) => {
+    console.log('update');
+    res.send('apposto')
+    return
 })
 
 crud.get('/delete/Id=:id', (req, res) => {
