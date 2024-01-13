@@ -21,6 +21,13 @@ let htmlDeleteResponseTemplate = fs.readFileSync(modifiedRoute + 'public/DELETE/
 
 let returnBackButton = `<button><a href="/">BACK</a></button>`;
 
+let columnsName = [
+    "nome",
+    "cognome",
+    "indirizzo",
+    "posta"
+]
+
 const crud = express()
 crud.use(helmet())
 crud.use(bodyParser.json())
@@ -68,6 +75,36 @@ crud.get('/Nome=:Nome', (req, res) => {
     })
 })
 
+crud.get('/Id=:id', (req, res) => {
+    let id = req.params.id
+
+    modelliDB.serialize(_ => {
+        modelliDB.all('SELECT ROWID, * FROM Modelli WHERE ROWID = $Id', {
+            $Id: id
+        }, (err, row) => {
+            if (err) {
+                res.sendStatus(500).send('Error on getting the row')
+            }
+            replacedRow = ReplaceRowsFunction(row)
+            let getElementsRow = replacedRow.split('\n')
+            let content = [];
+            //Need to insert name = the name that will be saved in the req.body object!!!
+            for (let i = 1; i < getElementsRow.length - 1; i++) {
+                content.push(`<th>
+                    <input value="${getElementsRow[i]
+                        .trim()
+                        .substring(4, getElementsRow[i].trim().length - 5)}"
+                    type="text"
+                    name="${columnsName[i - 1]}">
+                    </th>`)
+            }
+            res.status(200).send(returnBackButton + htmlUpdateResponseTemplate.
+                replace('{{%Content%}}', content.join(''))
+                .replace(/{{%Id%}}/g, id))
+        })
+    })
+})
+
 crud.post('/', (req, res) => {
     crud.use(express.static('./public/POST'))
     let jsonObject = {
@@ -92,29 +129,34 @@ crud.post('/', (req, res) => {
     })
 })
 
-crud.get('/Id=:id', (req, res) => {
+crud.get('/update/Id=:id', (req, res) => {
     let id = req.params.id
+    let jsonObject = {
+        $Id: id,
+        $Nome: req.body.nome || null,
+        $Cognome: req.body.cognome || null,
+        $Indirizzo: req.body.indirizzo || null,
+        $Posta: req.body.posta || null,
+    };
 
+    // console.log(jsonObject)
     modelliDB.serialize(_ => {
-        modelliDB.all('SELECT ROWID, * FROM Modelli WHERE ROWID = $Id', {
-            $Id: id
-        }, (err, row) => {
-            if (err) {
-                res.sendStatus(500).send('Error on getting the row')
-            }
-            replacedRow = ReplaceRowsFunction(row)
-            let getElementsRow = replacedRow.split('\n')
-            let content = [];
-            for (let i = 1; i < getElementsRow.length - 1; i++) {
-                content.push(`<th>
-                    <input value="${getElementsRow[i]
-                        .trim()
-                        .substring(4, getElementsRow[i].trim().length - 5)}"
-                    type="text">
-                    </th>`)
-            }
-            res.status(200).send(htmlUpdateResponseTemplate.replace('{{%Content%}}', content.join('') + returnBackButton))
-        })
+        modelliDB.run(`UPDATE Modelli SET
+        Nome = $Nome,
+        Cognome = $Cognome,
+        Indirizzo = $Indirizzo,
+        Posta = $Posta
+        WHERE ROWID = $Id`,
+            jsonObject, async (err) => {
+                let options = {
+                    method: "PATCH",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                };
+                await fetch(`${url}/CRUD/update/Id=${id}`, options)
+                    .then(res.status(200).send(jsonObject))
+            })
     })
 })
 
