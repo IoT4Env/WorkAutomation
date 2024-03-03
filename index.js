@@ -7,6 +7,7 @@ const fs = require('fs')
 
 const crud = require('./Routes/CRUD')
 const image = require('./Views/imageView')
+const handleError = require('./Views/handleError.js')
 
 const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME;
 const SERVER_PORT = process.env.SERVER_PORT
@@ -21,7 +22,7 @@ let htmlDropDownPopulation = fs.readFileSync(__dirname + '/public/MainPage/Index
 
 app.use('/CRUD', crud)
 app.use('/Images', image)
-
+app.use('/handleError', handleError)
 let ModelliDB = new SQLite3.Database(path.join(__dirname + './Database/modelli.db'))
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
