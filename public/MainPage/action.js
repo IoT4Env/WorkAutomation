@@ -24,9 +24,3 @@ nomiDDL.addEventListener('change', _ => {
     }
     previusName = nomiDDL.value
 })
-
-let restrictInput = (input) => {
-
-    console.log(input);
-
-}
