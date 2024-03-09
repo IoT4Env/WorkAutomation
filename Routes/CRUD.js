@@ -12,7 +12,7 @@ const localhost = `http://${SERVER_HOSTNAME}:${SERVER_PORT}`
 const fs = require('fs');
 const { log } = require('console');
 
-let modifiedRoute = __dirname.replace('\Routes', '/')
+let modifiedRoute = __dirname.replace('\Routes', '')
 
 let htmlContentTemplate = fs.readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
 let htmlGetResponseTemplate = fs.readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
@@ -35,7 +35,7 @@ crud.use(bodyParser.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
-const modelliDB = new SQLite3.Database(join(modifiedRoute + './Database/modelli.db'))
+const modelliDB = new SQLite3.Database(join(modifiedRoute + './Database/modelli.db'));
 
 //Custom SQLITE error identification:
 //CRUD_
