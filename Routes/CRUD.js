@@ -14,6 +14,7 @@ const { log } = require('console');
 
 let modifiedRoute = __dirname.replace('\Routes', '')
 
+//Insert theese resources on a config file
 let htmlContentTemplate = fs.readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
 let htmlGetResponseTemplate = fs.readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
 let htmlPostResponseTemplate = fs.readFileSync(modifiedRoute + 'public/POST/POST.html', 'utf-8')
@@ -37,10 +38,7 @@ crud.use(express.static('./public/'))
 
 const modelliDB = new SQLite3.Database(join(modifiedRoute + './Database/modelli.db'));
 
-//Custom SQLITE error identification:
-//CRUD_
-//INSERT SELECT UPDATE DELETE OTHER
-//0      1       2     3     4
+//Gets all elements from the Modelli table
 crud.get('/', (req, res) => {
     modelliDB.serialize(_ => {
         modelliDB.all('SELECT ROWID, * FROM Modelli', (err, rows) => {
@@ -58,6 +56,7 @@ crud.get('/', (req, res) => {
     })
 })
 
+//Get elements with the desired name
 crud.get('/Nome=:Nome', (req, res) => {
     let nome = req.params.Nome
 
@@ -87,43 +86,7 @@ crud.get('/Nome=:Nome', (req, res) => {
     })
 })
 
-crud.get('/Id=:id', (req, res) => {
-    crud.use(express.static('./public/UPDATE'))
-    let id = req.params.id
-
-    modelliDB.serialize(_ => {
-        modelliDB.all('SELECT ROWID, * FROM Modelli WHERE ROWID = $Id', {
-            $Id: id
-        }, (err, row) => {
-            if (err) {
-                const errorObj = {
-                    Code: 1,
-                    Body: err
-                }
-                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
-                return
-            }
-            replacedRow = ReplaceRowsFunction(row)
-            let getElementsRow = replacedRow.split('\n')
-            let content = [];
-            //Need to insert name = the name that will be saved in the req.body object!!!
-            for (let i = 1; i < getElementsRow.length - 1; i++) {
-                content.push(`<th>
-                    <input value="${getElementsRow[i]
-                        .trim()
-                        .substring(4, getElementsRow[i].trim().length - 5)}"
-                    type="text"
-                    required
-                    name="${columnsName[i - 1]}">
-                    </th>`)
-            }
-            res.status(200).send(returnBackButton + htmlUpdateResponseTemplate.
-                replace('{{%Content%}}', content.join(''))
-                .replace(/{{%Id%}}/g, id))
-        })
-    })
-})
-
+//Insert data in the Modelli table
 crud.post('/', (req, res) => {
     crud.use(express.static('./public/POST'))
     let jsonObject = {
@@ -149,11 +112,50 @@ crud.post('/', (req, res) => {
     })
 })
 
+//Get element to update by id and displays the content on a different html page
+crud.get('/Id=:id', (req, res) => {
+    crud.use(express.static('./public/UPDATE'))
+    let id = req.params.id
+
+    modelliDB.serialize(_ => {
+        modelliDB.all('SELECT ROWID, * FROM Modelli WHERE ROWID = $Id', {
+            $Id: id
+        }, (err, row) => {
+            if (err) {
+                const errorObj = {
+                    Code: 1,
+                    Body: err
+                }
+                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
+                return
+            }
+            replacedRow = ReplaceRowsFunction(row)
+            let getElementsRow = replacedRow.split('\n')
+            let content = [];
+
+            for (let i = 1; i < getElementsRow.length - 1; i++) {
+                content.push(`<th>
+                    <input value="${getElementsRow[i]
+                        .trim()
+                        .substring(4, getElementsRow[i].trim().length - 5)}"
+                    type="text"
+                    required
+                    name="${columnsName[i - 1]}">
+                    </th>`)
+            }
+            res.status(200).send(returnBackButton + htmlUpdateResponseTemplate.
+                replace('{{%Content%}}', content.join(''))
+                .replace(/{{%Id%}}/g, id))
+        })
+    })
+})
+
 /*
 Since we are working on localhost environment, we can accept the loss on security
 If i wanted to use the post method, i would need to create a new resourse on the db
 and then delete the old value, thus preserving some of the security
 */
+//The updated data replaces the old data
 crud.get('/update/Id=:id', (req, res) => {
     const fullUrl = req.url
     const urlParams = fullUrl.split('?')[1].split('&')
@@ -193,6 +195,7 @@ crud.get('/update/Id=:id', (req, res) => {
     })
 })
 
+//Delete specific element by id
 crud.get('/delete/Id=:id', (req, res) => {
     let id = req.params.id
     modelliDB.serialize(_ => {
@@ -219,6 +222,7 @@ crud.get('/delete/Id=:id', (req, res) => {
     })
 })
 
+//Displayes content gathered from the db as table format
 function ReplaceRowsFunction(rows) {
     let jsonTemplate = JSON.parse(JSON.stringify(rows))
     let replacedRows = jsonTemplate.map(json => {
