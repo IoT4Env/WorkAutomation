@@ -1,25 +1,28 @@
-require('dotenv').config()
-const express = require('express')
-const SQLite3 = require('sqlite3').verbose();
-const helmet = require('helmet')
-const bodyParser = require('body-parser')
-const { join } = require('path');
+import dotEnv from 'dotenv'
+import express from 'express';
+import SQLite3 from 'sqlite3';
+import helmet from 'helmet';
+import bodyParser from 'body-parser';
+import path, { join } from 'path';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
+dotEnv.config();
 const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME;
 const SERVER_PORT = process.env.SERVER_PORT
 const localhost = `http://${SERVER_HOSTNAME}:${SERVER_PORT}`
 
-const fs = require('fs');
-const { log } = require('console');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 let modifiedRoute = __dirname.replace('\Routes', '')
 
 //Insert theese resources on a config file
-let htmlContentTemplate = fs.readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
-let htmlGetResponseTemplate = fs.readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
-let htmlPostResponseTemplate = fs.readFileSync(modifiedRoute + 'public/POST/POST.html', 'utf-8')
-let htmlUpdateResponseTemplate = fs.readFileSync(modifiedRoute + 'public/UPDATE/UPDATE.html', 'utf-8')
-let htmlDeleteResponseTemplate = fs.readFileSync(modifiedRoute + 'public/DELETE/DELETE.html', 'utf-8')
+let htmlContentTemplate = readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
+let htmlGetResponseTemplate = readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
+let htmlPostResponseTemplate = readFileSync(modifiedRoute + 'public/POST/POST.html', 'utf-8')
+let htmlUpdateResponseTemplate = readFileSync(modifiedRoute + 'public/UPDATE/UPDATE.html', 'utf-8')
+let htmlDeleteResponseTemplate = readFileSync(modifiedRoute + 'public/DELETE/DELETE.html', 'utf-8')
 
 let returnBackButton = `<button><a href="/">BACK</a></button>`;
 
@@ -32,7 +35,7 @@ let columnsName = [
 
 const crud = express()
 crud.use(helmet())
-crud.use(bodyParser.json())
+crud.use(express.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
@@ -50,7 +53,7 @@ crud.get('/', (req, res) => {
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
             }
-            replacedRows = ReplaceRowsFunction(rows)
+            let replacedRows = ReplaceRowsFunction(rows)
             res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
         })
     })
@@ -80,7 +83,7 @@ crud.get('/Nome=:Nome', (req, res) => {
                     return
                 }
 
-                replacedRows = ReplaceRowsFunction(rows)
+                let replacedRows = ReplaceRowsFunction(rows)
                 res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
             })
     })
@@ -129,7 +132,7 @@ crud.get('/Id=:id', (req, res) => {
                 res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                 return
             }
-            replacedRow = ReplaceRowsFunction(row)
+            let replacedRow = ReplaceRowsFunction(row)
             let getElementsRow = replacedRow.split('\n')
             let content = [];
 
@@ -236,13 +239,12 @@ function ReplaceRowsFunction(rows) {
         return outputRow
     })
 
-    //console.log(replacedRows);
     if (rows.length === 1) {
         let subString = replacedRows[0].split('</th>')
-        subString.splice(subString.length - 1, 1)
+        subString.splice(subString.length - 2, 1)
         return subString.join('</th>')
     }
     return replacedRows.join('');
 }
 
-module.exports = crud;
+export default crud;

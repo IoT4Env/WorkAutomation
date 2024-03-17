@@ -1,4 +1,4 @@
-const express = require('express')
+import express from 'express';
 
 const handleError = express()
 
@@ -27,4 +27,4 @@ handleError.get('/:err', (req, res) => {
     return;
 })
 
-module.exports = handleError
+export default handleError
