@@ -53,7 +53,7 @@ crud.get('/', (req, res) => {
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
             }
-            let replacedRows = ReplaceRowsFunction(rows)
+            let replacedRows = replaceRows(rows)
             res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
         })
     })
@@ -83,7 +83,7 @@ crud.get('/Nome=:Nome', (req, res) => {
                     return
                 }
 
-                let replacedRows = ReplaceRowsFunction(rows)
+                let replacedRows = replaceRows(rows)
                 res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
             })
     })
@@ -132,7 +132,7 @@ crud.get('/Id=:id', (req, res) => {
                 res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                 return
             }
-            let replacedRow = ReplaceRowsFunction(row)
+            let replacedRow = rowsRefinment(replaceRows(row))
             let getElementsRow = replacedRow.split('\n')
             let content = [];
 
@@ -226,7 +226,7 @@ crud.get('/delete/Id=:id', (req, res) => {
 })
 
 //Displayes content gathered from the db as table format
-function ReplaceRowsFunction(rows) {
+function replaceRows(rows) {
     let jsonTemplate = JSON.parse(JSON.stringify(rows))
     let replacedRows = jsonTemplate.map(json => {
         let outputRow = htmlContentTemplate
@@ -238,13 +238,13 @@ function ReplaceRowsFunction(rows) {
 
         return outputRow
     })
-
-    if (rows.length === 1) {
-        let subString = replacedRows[0].split('</th>')
-        subString.splice(subString.length - 2, 1)
-        return subString.join('</th>')
-    }
     return replacedRows.join('');
+}
+
+function rowsRefinment(replacedRows){
+    let subString = replacedRows.split('</th>')
+    subString.splice(subString.length - 2, 1)
+    return subString.join('</th>')
 }
 
 export default crud;
