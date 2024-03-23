@@ -1,30 +1,36 @@
-require('dotenv').config()
-const express = require('express')
-const helmet = require('helmet')
-const SQLite3 = require('sqlite3').verbose();
-const path = require('path')
-const fs = require('fs')
+import dotEnv from 'dotenv'
+import express from 'express';
+import helmet from 'helmet';
+import SQLite3 from 'sqlite3';
+import path, { join } from 'path';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
-const crud = require('./Routes/CRUD')
-const image = require('./Views/imageView')
-const handleError = require('./Views/handleError.js')
+import crud from './Routes/CRUD.js';
+import image from './Views/imageView.js';
+import handleError from './Views/handleError.js';
+
+dotEnv.config()
 
 const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME;
 const SERVER_PORT = process.env.SERVER_PORT
 const url = `http://${SERVER_HOSTNAME}:${SERVER_PORT}`
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
 app.use(helmet())
 app.use(express.json());
 
-let htmlDropDownPopulation = fs.readFileSync(__dirname + '/public/MainPage/Index.html', 'utf-8')
+let htmlDropDownPopulation = readFileSync(__dirname + '/public/MainPage/Index.html', 'utf-8')
 
 app.use('/CRUD', crud)
 app.use('/Images', image)
 app.use('/handleError', handleError)
 
-let ModelliDB = new SQLite3.Database(path.join(__dirname + '/Database/modelli.db'))
+let ModelliDB = new SQLite3.Database(join(__dirname + '/Database/modelli.db'))
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
     console.log(`Server avviato su ${url}`)
