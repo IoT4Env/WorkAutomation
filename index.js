@@ -32,17 +32,22 @@ app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
 
-let ModelliDB = new SQLite3.Database(join(__dirname + '/Database/modelli.db'))
+const modelliDB = new SQLite3.Database(join(__dirname + '/Database/modelli.db'))
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
     console.log(`Server avviato su ${url}`)
 })
 
 app.get('', (req, res) => {
-    ModelliDB.serialize(_ => {
-        ModelliDB.all('SELECT ROWID, Nome FROM Modelli', (err, rows) => {
+    modelliDB.serialize(_ => {
+        modelliDB.all('SELECT ROWID, Nome FROM Modelli', (err, rows) => {
             if (err) {
-                res.status(500).send('Errore popolazione dropdown')
+                const errorObj = {
+                    Code: 1,
+                    Body: err
+                }
+                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
+                return;
             }
             let jsonTemplate = JSON.parse(JSON.stringify(rows))
             let populatedNameDropDown = []
