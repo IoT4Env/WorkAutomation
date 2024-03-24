@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import crud from './Routes/CRUD.js';
 import image from './Views/imageView.js';
 import handleError from './Views/handleError.js';
+import fileUpload from './Routes/FileUpload.js';
 
 dotEnv.config()
 
@@ -27,20 +28,26 @@ app.use(express.json());
 let htmlDropDownPopulation = readFileSync(__dirname + '/public/MainPage/Index.html', 'utf-8')
 
 app.use('/CRUD', crud)
+app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
 
-let ModelliDB = new SQLite3.Database(join(__dirname + '/Database/modelli.db'))
+const modelliDB = new SQLite3.Database(join(__dirname + '/Database/modelli.db'))
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
     console.log(`Server avviato su ${url}`)
 })
 
 app.get('', (req, res) => {
-    ModelliDB.serialize(_ => {
-        ModelliDB.all('SELECT ROWID, Nome FROM Modelli', (err, rows) => {
+    modelliDB.serialize(_ => {
+        modelliDB.all('SELECT ROWID, Nome FROM Modelli', (err, rows) => {
             if (err) {
-                res.status(500).send('Errore popolazione dropdown')
+                const errorObj = {
+                    Code: 1,
+                    Body: err
+                }
+                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
+                return;
             }
             let jsonTemplate = JSON.parse(JSON.stringify(rows))
             let populatedNameDropDown = []
