@@ -32,32 +32,34 @@ app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
 
-const modelliDB = new SQLite3.Database(join(__dirname + '/Database/modelli.db'))
+const modelsDb = new SQLite3.Database(join(__dirname + '/Databases/models.db'))
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
-    console.log(`Server avviato su ${url}`)
+    console.log(`Server started on ${url}`)
 })
 
 app.get('', (req, res) => {
-    modelliDB.serialize(_ => {
-        modelliDB.all('SELECT ROWID, Nome FROM Modelli', (err, rows) => {
+    modelsDb
+    .serialize(_ => {
+        modelsDb
+        .all('SELECT ROWID, name FROM Models', (err, rows) => {
             if (err) {
                 const errorObj = {
-                    Code: 1,
-                    Body: err
+                    "Code": 1,
+                    "Body": err
                 }
                 res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                 return;
             }
             let jsonTemplate = JSON.parse(JSON.stringify(rows))
-            let populatedNameDropDown = []
+            let populatedNames = []
             jsonTemplate.map(json => {
-                if (!populatedNameDropDown.includes(`<option>${json.Nome}</option>`))
-                    populatedNameDropDown.push(`<option>${json.Nome}</option>`)
+                if (!populatedNames.includes(`<option>${json.name}</option>`))
+                    populatedNames.push(`<option>${json.name}</option>`)
             })
             app.use(express.static('./public/MainPage'))
             res.status(200)
-                .send(htmlDropDownPopulation.replace('{{%ListaNomi%}}', populatedNameDropDown.join(',')))
+                .send(htmlDropDownPopulation.replace('{{%Names%}}', populatedNames.join(',')))
         })
     })
 })
