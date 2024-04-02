@@ -20,7 +20,7 @@ args(0).Value = true
 set oDocument = starDesktop.loadComponentFromURL(cUrl, "_blank", 0, args)
 set oSheet = oDocument.getSheets().getByIndex(0)
 
-set oDestinationFile = fso.OpenTextFile(".\destinationFile.sql",2)
+set oDestinationFile = fso.OpenTextFile(".\Resources\SqlQueries\destinationFile.sql",2)
 
 'We will convert all data in a json file in some way...
 ' header = Array("Id", "Nome", "Cognome", "Indirizzo", "Posta")
