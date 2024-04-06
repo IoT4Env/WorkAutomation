@@ -1,5 +1,6 @@
 import decompress from "decompress";
 import path from 'path'
+import fs from 'fs'
 
 
 decompress('contentFile.ods', {
@@ -7,37 +8,43 @@ decompress('contentFile.ods', {
 }).then(files => {
     // convert file read into a file-like format
     const xmlData = files[0].data.toString().split('><').join('>\n<').split('\n')
+    xmlToCsv(xmlData)
+});
 
+function xmlToCsv(xml){
     let fullOdsContent = []
     let odsRow = []
 
     // The end of a row in the ods file needs 2 tags to be closed (cell and row)
     // AND 2 tags to be opened (cell and row)
     // if this variable exeeds the sum of 2 + 2, a new row is read
-    let customRowDelimitator = 0
-    xmlData.forEach(data => {
-        customRowDelimitator++;
+    let rowDelimitator = 0
+    xml.forEach(data => {
+        let index = data.indexOf('>')
+
+        rowDelimitator++;
 
         // the idea is to find all those tags than contains content
         // eg: <tag_name>some text</tag_name>
-        if (data.indexOf('>') != data.length - 1) {
+        if (index != data.length - 1) {
             let cellContent = ''
-            let index = data.indexOf('>')
             while (data[++index] != '<') {
                 cellContent += data[index]
             }
             odsRow.push(cellContent)
-            customRowDelimitator = 0;
+            rowDelimitator = 0;
         }
 
-        if (customRowDelimitator > 3 && odsRow.length > 0) {
+        if (rowDelimitator > 3 && odsRow.length > 0) {
             //new row
-            fullOdsContent.push(odsRow)
+            fullOdsContent.push(odsRow.join(';'))
             odsRow = []
-            customRowDelimitator = 0;
+            rowDelimitator = 0;
         }
     })
+    return fullOdsContent
+}
 
-    console.log(fullOdsContent)
-    // console.log(xmlData);
-});
+function csvToSql(csv){
+
+}
