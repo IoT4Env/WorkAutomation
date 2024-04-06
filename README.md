@@ -19,3 +19,5 @@ Navigating to the confgured web address, the main page will be ready to execute 
 
 The project with the up-written specification can be found in the main branch of this repository.
 Future versions of the project will be developed on a separated branch, adding more dinamicity and usability for all potentials StakeHolders that might want to use this SoftWare.
+
+For further information about development of this repository, please refer to the WIKI associated with it.
