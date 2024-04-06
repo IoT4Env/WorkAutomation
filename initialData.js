@@ -62,6 +62,11 @@ function xmlToCsv(xml) {
     return fullOdsContent
 }
 
+/**
+ * 
+ * @param {string} csv A semicolon separated value string
+ * @returns An sql query to execute on the database
+ */
 function csvToSql(csv) {
     let sqlValues = []
     for (let i = 1; i < csv.length; i++) {

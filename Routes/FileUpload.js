@@ -38,6 +38,7 @@ fileUpload.post('/sql', storage.single('uploaded-sql-query'), (req, res) => {
     })
 })
 
+//Migrate ods file uploaded by the user
 fileUpload.post('/ods', storage.single('uploaded-ods'), (req,res) =>{
     const odsPath = req.file.path
     initialData.initialData(odsPath)

@@ -209,7 +209,11 @@ crud.get('/delete/Id=:id', (req, res) => {
     })
 })
 
-//Displayes content gathered from the db as table format
+/**
+ * 
+ * @param {Array} rows Returned rows from the sql query
+ * @returns Content gathered from the db as table format in the html page
+ */
 function replaceRows(rows) {
     let jsonTemplate = JSON.parse(JSON.stringify(rows))
     let replacedRows = jsonTemplate.map(json => {
@@ -225,6 +229,11 @@ function replaceRows(rows) {
     return replacedRows.join('');
 }
 
+/**
+ * 
+ * @param {Array} replacedRows Raw replaced rows that need more work before displaying on html
+ * @returns A refined version of raws
+ */
 function rowsRefinment(replacedRows){
     let subString = replacedRows.split('</th>')
     subString.splice(subString.length - 2, 1)
