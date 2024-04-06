@@ -6,18 +6,20 @@ import Resources from './Resources/resources.js'
 
 const resources = new Resources();
 
-decompress('contentFile.ods', {
-    filter: file => path.basename(file.path) === 'content.xml'
-}).then(files => {
-    /**
-     * file-like representation of the actual file
-     */
-    const xmlData = files[0].data.toString().split('><').join('>\n<').split('\n')
-    const csvData = xmlToCsv(xmlData)
-    const sqlQuery = csvToSql(csvData)
-
-    fs.writeFileSync(path.join(resources.__dirname, '/SqlQueries/insertByJs.sql'), sqlQuery)
-});
+export default class InitialData{
+    initialData = (odsFile) => decompress(odsFile, {
+        filter: file => path.basename(file.path) === 'content.xml'
+    }).then(files => {
+        /**
+         * file-like representation of the actual file
+         */
+        const xmlData = files[0].data.toString().split('><').join('>\n<').split('\n')
+        const csvData = xmlToCsv(xmlData)
+        const sqlQuery = csvToSql(csvData)
+    
+        fs.writeFileSync(path.join(resources.__dirname, '/SqlQueries/insertByJs.sql'), sqlQuery)
+    });    
+}
 
 /**
  * 
