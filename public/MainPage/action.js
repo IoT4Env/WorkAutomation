@@ -1,11 +1,8 @@
 const names = document.getElementById('names'),
     getLink = document.getElementById('GET-Link'),
     inputs = document.getElementsByTagName('input'),
-    chooseOds = document.querySelector('#choose-ods'),
-    chooseSqlQuery = document.querySelector('#choose-sql-query')
+    fileInputs = document.querySelectorAll('input[type=file]')
 
-const labelOds = document.querySelector(`label[for=${chooseOds.id}]`),
-    labelSqlQuery = document.querySelector(`label[for=${chooseSqlQuery.id}]`)
 
 //#region Chars restriction
 for (let i = 0; i < inputs.length - 1; i++) {
@@ -15,7 +12,7 @@ for (let i = 0; i < inputs.length - 1; i++) {
 }
 //#endregion
 
-//#region dynamic DDL
+//#region Dynamic DDL
 let previusName,
     linkString = getLink.getAttribute('href')
 
@@ -34,10 +31,16 @@ names.addEventListener('change', _ => {
 })
 //#endregion
 
-chooseOds.addEventListener('change', _=>{
-    labelOds.innerHTML = chooseOds.files.item(0).name;
+//#region Verbosed labels
+let labelInputs = []
+
+fileInputs.forEach(file => {
+    labelInputs.push(document.querySelector(`label[for=${file.id}]`))
 })
 
-chooseSqlQuery.addEventListener('change', _=>{
-    labelSqlQuery.innerHTML = chooseSqlQuery.files.item(0).name;
-})
+for (let i = 0; i < fileInputs.length; i++) {
+    fileInputs[i].addEventListener('change', _ => {
+        labelInputs[i].innerHTML = fileInputs[i].files[0].name
+    })
+}
+//#endregion
