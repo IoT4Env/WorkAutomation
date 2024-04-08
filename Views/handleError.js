@@ -3,10 +3,8 @@ import express from 'express';
 const handleError = express()
 
 handleError.get('/:err', (req, res) => {
-    console.log(req.params.err);
     const {Code, Body} = JSON.parse(req.params.err)
 
-    console.error(Body)
     switch (Code) {
         case 0:
             res.status(500).send('Error on INSERT query')

@@ -5,11 +5,11 @@ table{
     background-color: red;
 }
 
-.RigaPrincipale{
+.main-row{
     background-color: greenyellow;
 }
 
-.NomeColonna{
+.column-name{
     text-align: center;
     width: 250px;
     background-color: yellow;

@@ -1,63 +1,62 @@
-import dotEnv from 'dotenv'
 import express from 'express';
 import helmet from 'helmet';
-import SQLite3 from 'sqlite3';
-import path, { join } from 'path';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
 
 import crud from './Routes/CRUD.js';
 import image from './Views/imageView.js';
 import handleError from './Views/handleError.js';
 import fileUpload from './Routes/FileUpload.js';
 
-dotEnv.config()
+import Resources from './Resources/resources.js'
+import Config from './Resources/config.js'
 
-const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME;
-const SERVER_PORT = process.env.SERVER_PORT
-const url = `http://${SERVER_HOSTNAME}:${SERVER_PORT}`
+const resources = new Resources();
+const config = new Config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const ddl = resources.HtmlTemplates.DDL;
+
+const SERVER_PORT = config.SERVER_PORT
+const SERVER_HOSTNAME = config.SERVER_HOSTNAME
+const localhost = config.URL;
+
+const modelsDb = resources.ModelsDb;
 
 const app = express();
-
 app.use(helmet())
 app.use(express.json());
-
-let htmlDropDownPopulation = readFileSync(__dirname + '/public/MainPage/Index.html', 'utf-8')
 
 app.use('/CRUD', crud)
 app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
 
-const modelliDB = new SQLite3.Database(join(__dirname + '/Database/modelli.db'))
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
-    console.log(`Server avviato su ${url}`)
+    console.log(`Server started on ${localhost}`)
 })
 
+//Gets main page
 app.get('', (req, res) => {
-    modelliDB.serialize(_ => {
-        modelliDB.all('SELECT ROWID, Nome FROM Modelli', (err, rows) => {
+    modelsDb
+    .serialize(_ => {
+        modelsDb
+        .all('SELECT ROWID, name FROM Models', (err, rows) => {
             if (err) {
                 const errorObj = {
-                    Code: 1,
-                    Body: err
+                    "Code": 1,
+                    "Body": err
                 }
                 res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                 return;
             }
             let jsonTemplate = JSON.parse(JSON.stringify(rows))
-            let populatedNameDropDown = []
+            let populatedNames = []
             jsonTemplate.map(json => {
-                if (!populatedNameDropDown.includes(`<option>${json.Nome}</option>`))
-                    populatedNameDropDown.push(`<option>${json.Nome}</option>`)
+                if (!populatedNames.includes(`<option>${json.name}</option>`))
+                    populatedNames.push(`<option>${json.name}</option>`)
             })
             app.use(express.static('./public/MainPage'))
             res.status(200)
-                .send(htmlDropDownPopulation.replace('{{%ListaNomi%}}', populatedNameDropDown.join(',')))
+                .send(ddl.replace('{{%Names%}}', populatedNames.join(',')))
         })
     })
 })

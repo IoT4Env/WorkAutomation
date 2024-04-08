@@ -1,37 +1,22 @@
-import dotEnv from 'dotenv'
 import express from 'express';
-import SQLite3 from 'sqlite3';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
-import path, { join } from 'path';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
 
-dotEnv.config();
-const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME;
-const SERVER_PORT = process.env.SERVER_PORT
-const localhost = `http://${SERVER_HOSTNAME}:${SERVER_PORT}`
+import Resources from '../Resources/resources.js'
+import Config from '../Resources/config.js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const resources = new Resources();
+const config = new Config();
 
-let modifiedRoute = __dirname.replace('\Routes', '')
+const localhost = config.URL;
 
-//Insert theese resources on a config file
-let htmlContentTemplate = readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
-let htmlGetResponseTemplate = readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
-let htmlPostResponseTemplate = readFileSync(modifiedRoute + 'public/POST/POST.html', 'utf-8')
-let htmlUpdateResponseTemplate = readFileSync(modifiedRoute + 'public/UPDATE/UPDATE.html', 'utf-8')
-let htmlDeleteResponseTemplate = readFileSync(modifiedRoute + 'public/DELETE/DELETE.html', 'utf-8')
+const htmlTemplates = resources.HtmlTemplates;
+const get = htmlTemplates.Get;
+const returnBackButton = resources.ReturnBackButton;
 
-let returnBackButton = `<button><a href="/">BACK</a></button>`;
+const columnsName = resources.ColumnsName;
 
-let columnsName = [
-    "Nome",
-    "Cognome",
-    "Indirizzo",
-    "Posta"
-]
+const modelsDb = resources.ModelsDb;
 
 const crud = express()
 crud.use(helmet())
@@ -39,12 +24,11 @@ crud.use(express.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
-const modelliDB = new SQLite3.Database(join(modifiedRoute + './Database/modelli.db'));
 
-//Gets all elements from the Modelli table
+//Gets all elements from the Models table
 crud.get('/', (req, res) => {
-    modelliDB.serialize(_ => {
-        modelliDB.all('SELECT ROWID, * FROM Modelli', (err, rows) => {
+    modelsDb.serialize(_ => {
+        modelsDb.all('SELECT ROWID, * FROM Models', (err, rows) => {
             if (err) {
                 const errorObj = {
                     Code: 1,
@@ -54,24 +38,24 @@ crud.get('/', (req, res) => {
                 return
             }
             let replacedRows = replaceRows(rows)
-            res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
+            res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows))
         })
     })
 })
 
 //Get elements with the desired name
-crud.get('/Nome=:Nome', (req, res) => {
-    let nome = req.params.Nome
+crud.get('/Name=:Name', (req, res) => {
+    let name = req.params.Name
 
-    if (nome.includes('_')) {
+    if (name.includes('_')) {
         res.status(400).send(`Name not specified ${returnBackButton}`)
         return
     }
 
-    modelliDB.serialize(_ => {
-        modelliDB.all('SELECT ROWID, * FROM Modelli WHERE Nome = $Nome',
+    modelsDb.serialize(_ => {
+        modelsDb.all('SELECT ROWID, * FROM Models WHERE name = $Name',
             {
-                $Nome: nome
+                $Name: name
             }
             , (err, rows) => {
                 if (err) {
@@ -84,33 +68,33 @@ crud.get('/Nome=:Nome', (req, res) => {
                 }
 
                 let replacedRows = replaceRows(rows)
-                res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
+                res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows))
             })
     })
 })
 
-//Insert data in the Modelli table
+//Insert data in the Models table
 crud.post('/', (req, res) => {
     crud.use(express.static('./public/POST'))
     let jsonObject = {
-        $Nome: req.body.nome || null,
-        $Cognome: req.body.cognome || null,
-        $Indirizzo: req.body.indirizzo || null,
-        $Posta: req.body.posta || null,
+        $Name: req.body.name || null,
+        $Surname: req.body.surname || null,
+        $Address: req.body.address || null,
+        $Mail: req.body.mail || null,
     };
 
-    modelliDB.serialize(_ => {
-        modelliDB.run('INSERT INTO Modelli(Nome, Cognome, Indirizzo, Posta) VALUES ($Nome, $Cognome, $Indirizzo, $Posta)',
+    modelsDb.serialize(_ => {
+        modelsDb.run('INSERT INTO Models(name, surname, address, mail) VALUES ($Name, $Surname, $Address, $Mail)',
             jsonObject, (err) => {
                 if (err) {
                     const errorObj = {
-                        Code: 0,
-                        Body: err
+                        "Code": 0,
+                        "Body": err
                     }
                     res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                     return
                 }
-                res.status(201).send(htmlPostResponseTemplate + returnBackButton)
+                res.status(201).send(htmlTemplates.Post + returnBackButton)
             })
     })
 })
@@ -120,8 +104,8 @@ crud.get('/Id=:id', (req, res) => {
     crud.use(express.static('./public/UPDATE'))
     let id = req.params.id
 
-    modelliDB.serialize(_ => {
-        modelliDB.all('SELECT ROWID, * FROM Modelli WHERE ROWID = $Id', {
+    modelsDb.serialize(_ => {
+        modelsDb.all('SELECT ROWID, * FROM Models WHERE ROWID = $Id', {
             $Id: id
         }, (err, row) => {
             if (err) {
@@ -146,7 +130,7 @@ crud.get('/Id=:id', (req, res) => {
                     name="${columnsName[i - 1]}">
                     </th>`)
             }
-            res.status(200).send(returnBackButton + htmlUpdateResponseTemplate.
+            res.status(200).send(returnBackButton + htmlTemplates.Update.
                 replace('{{%Content%}}', content.join(''))
                 .replace(/{{%Id%}}/g, id))
         })
@@ -170,12 +154,12 @@ crud.get('/update/Id=:id', (req, res) => {
         jsonObject[`$${columnsName[i]}`] = urlParams[i].split('=')[1] || null
     }
 
-    modelliDB.serialize(_ => {
-        modelliDB.run(`UPDATE Modelli SET
-        Nome = $Nome,
-        Cognome = $Cognome,
-        Indirizzo = $Indirizzo,
-        Posta = $Posta
+    modelsDb.serialize(_ => {
+        modelsDb.run(`UPDATE Models SET
+        name = $Name,
+        surname = $Surname,
+        address = $Address,
+        mail = $Mail
         WHERE ROWID = $Id`,
             jsonObject, async (err) => {
                 if (err) {
@@ -201,8 +185,8 @@ crud.get('/update/Id=:id', (req, res) => {
 //Delete specific element by id
 crud.get('/delete/Id=:id', (req, res) => {
     let id = req.params.id
-    modelliDB.serialize(_ => {
-        modelliDB.run('DELETE FROM Modelli WHERE ROWID = $Id', {
+    modelsDb.serialize(_ => {
+        modelsDb.run('DELETE FROM Models WHERE ROWID = $Id', {
             $Id: id
         }, (err) => {
             if (err) {
@@ -220,20 +204,24 @@ crud.get('/delete/Id=:id', (req, res) => {
                 }
             }
             fetch(`${localhost}/CRUD/delete/Id=${id}`, options)
-                .then(res.status(200).send(htmlDeleteResponseTemplate + returnBackButton))
+                .then(res.status(200).send(htmlTemplates.Delete + returnBackButton))
         })
     })
 })
 
-//Displayes content gathered from the db as table format
+/**
+ * 
+ * @param {Array} rows Returned rows from the sql query
+ * @returns Content gathered from the db as table format in the html page
+ */
 function replaceRows(rows) {
     let jsonTemplate = JSON.parse(JSON.stringify(rows))
     let replacedRows = jsonTemplate.map(json => {
-        let outputRow = htmlContentTemplate
-            .replace('{{%Nome%}}', json.Nome)
-            .replace('{{%Cognome%}}', json.Cognome)
-            .replace('{{%Indirizzo%}}', json.Indirizzo)
-            .replace('{{%Posta%}}', json.Posta)
+        let outputRow = htmlTemplates.Content
+            .replace('{{%Name%}}', json.name)
+            .replace('{{%Surname%}}', json.surname)
+            .replace('{{%Address%}}', json.address)
+            .replace('{{%Mail%}}', json.mail)
             .replace(/{{%Id%}}/g, json.rowid)
 
         return outputRow
@@ -241,6 +229,11 @@ function replaceRows(rows) {
     return replacedRows.join('');
 }
 
+/**
+ * 
+ * @param {Array} replacedRows Raw replaced rows that need more work before displaying on html
+ * @returns A refined version of raws
+ */
 function rowsRefinment(replacedRows){
     let subString = replacedRows.split('</th>')
     subString.splice(subString.length - 2, 1)

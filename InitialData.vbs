@@ -20,7 +20,7 @@ args(0).Value = true
 set oDocument = starDesktop.loadComponentFromURL(cUrl, "_blank", 0, args)
 set oSheet = oDocument.getSheets().getByIndex(0)
 
-set oDestinationFile = fso.OpenTextFile(".\destinationFile.sql",2)
+set oDestinationFile = fso.OpenTextFile(".\Resources\SqlQueries\destinationFile.sql",2)
 
 'We will convert all data in a json file in some way...
 ' header = Array("Id", "Nome", "Cognome", "Indirizzo", "Posta")
@@ -43,7 +43,7 @@ set oDestinationFile = fso.OpenTextFile(".\destinationFile.sql",2)
 ' json = json & "]"
 ' oDestinationFile.Write json
 
-query = "INSERT INTO Modelli(Id, Nome, Cognome, Indirizzo, Posta) VALUES " & vbCr & "("
+query = "INSERT INTO Models(id, name, surname, address, mail) VALUES " & vbCr & "("
 
 For i = 1 to 6 Step 1
 	values = ""
