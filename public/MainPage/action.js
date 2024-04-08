@@ -1,7 +1,11 @@
 const names = document.getElementById('names'),
     getLink = document.getElementById('GET-Link'),
-    inputs = document.getElementsByTagName('input')
+    inputs = document.getElementsByTagName('input'),
+    chooseOds = document.querySelector('#choose-ods'),
+    chooseSqlQuery = document.querySelector('#choose-sql-query')
 
+const labelOds = document.querySelector(`label[for=${chooseOds.id}]`),
+    labelSqlQuery = document.querySelector(`label[for=${chooseSqlQuery.id}]`)
 
 //#region Chars restriction
 for (let i = 0; i < inputs.length - 1; i++) {
@@ -29,3 +33,11 @@ names.addEventListener('change', _ => {
     previusName = names.value
 })
 //#endregion
+
+chooseOds.addEventListener('change', _=>{
+    labelOds.innerHTML = chooseOds.files.item(0).name;
+})
+
+chooseSqlQuery.addEventListener('change', _=>{
+    labelSqlQuery.innerHTML = chooseSqlQuery.files.item(0).name;
+})
