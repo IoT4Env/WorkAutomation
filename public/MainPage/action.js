@@ -1,13 +1,15 @@
-const names = document.querySelector('#names'),
+const fields = document.querySelector('#fields'),
     filter = document.querySelector('#filter'),
     getLink = document.querySelector('#get-link'),
     inputs = document.getElementsByTagName('input')
 
 let columns;
 
-fetch(`${window.location.href}fetchData`).then(res => {
+//gather data from back end when needed
+fetch(`${window.location.href}fetchResources/columns`).then(res => {
     res.text().then(text => {
         columns = JSON.parse(text);
+
     })
 })
 
@@ -23,24 +25,22 @@ for (let i = 0; i < inputs.length - 1; i++) {
 let previusName,
     linkString = getLink.getAttribute('href')
 
-names.addEventListener('change', _ => {
-    if (names.value !== 'OPTIONS') {
+fields.addEventListener('change', _ => {
+    if (fields.value !== 'OPTIONS') {
         if (!linkString.includes('_Name_')) {
-            getLink.setAttribute('href', linkString.replace(previusName, names.value))
+            getLink.setAttribute('href', linkString.replace(previusName, fields.value))
         }
-        getLink.setAttribute('href', linkString.replace('_Name_', names.value))
+        getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
 
     } else {
         getLink.setAttribute('href', linkString.replace(previusName, '_Name_'))
     }
-    console.log(names.value);
-    previusName = names.value
+    previusName = fields.value
 })
 
-
-//Per ottenere i nomi delle colonne dell'ods, dobbiamo fare una fetch ad una risorsa esposta dal server
-//E una api che ritorna l'array columns del file risorse.js
 filter.addEventListener('change', _ => {
-
+    //on change, an api is called
+    //the api does the query by field chosen on the front end
+    //the result should update the values inside html of main page
 })
 //#endregion
