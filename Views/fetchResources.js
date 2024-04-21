@@ -33,7 +33,6 @@ frontBack.get('/filters/:filter', (req,res) =>{
                 if (!filters.includes(`<option>${json[selectedFilter]}</option>`))
                     filters.push(`<option>${json[selectedFilter]}</option>`)
             })
-
             return res.status(200).send(filters)
         })
     })

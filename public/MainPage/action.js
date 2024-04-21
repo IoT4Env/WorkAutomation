@@ -3,7 +3,7 @@ const fields = document.querySelector('#fields'),
     getLink = document.querySelector('#get-link'),
     inputs = document.getElementsByTagName('input')
 
-let columns, filtersArr;
+let columns, filedsArr;
 
 //gather data from back end when needed
 fetch(`${window.location.href}fetchResources/columns`).then(res => {
@@ -11,6 +11,10 @@ fetch(`${window.location.href}fetchResources/columns`).then(res => {
         columns = JSON.parse(text);
     })
 })
+
+let linkString = getLink.getAttribute('href')
+
+getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
 
 //#region Chars restriction
 for (let i = 0; i < inputs.length - 1; i++) {
@@ -21,28 +25,18 @@ for (let i = 0; i < inputs.length - 1; i++) {
 //#endregion
 
 //#region dynamic DDL
-let previusName,
-    linkString = getLink.getAttribute('href')
 
 fields.addEventListener('change', _ => {
-    if (fields.value !== 'OPTIONS') {
-        if (!linkString.includes('_Name_')) {
-            getLink.setAttribute('href', linkString.replace(previusName, fields.value))
-        }
-        getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
-
-    } else {
-        getLink.setAttribute('href', linkString.replace(previusName, '_Name_'))
-    }
-    previusName = fields.value
+    getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
 })
 
 filter.addEventListener('change', _ => {
     fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}`)
         .then(res => {
-            res.text().then(filters => {
-                filtersArr = JSON.parse(filters);
-                fields.innerHTML = filtersArr.join(',')
+            res.text().then(filedsRes => {
+                filedsArr = JSON.parse(filedsRes);
+                fields.innerHTML = filedsArr.join(',')
+                getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
             })
         })
 })
