@@ -18,7 +18,7 @@ const SERVER_HOSTNAME = config.SERVER_HOSTNAME
 const localhost = config.URL;
 
 const modelsDb = resources.ModelsDb;
-let baseFilter = resources.ColumnsName[0].toLowerCase()
+let currentFilter = resources.ColumnsName[0].toLowerCase()
 
 const app = express();
 app.use(helmet())
@@ -36,9 +36,9 @@ app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
 })
 
 //Gets main page
-app.get('', (req, res) => {
+app.get('', async (req, res) => {
     modelsDb.serialize(_ => {
-        modelsDb.all(`SELECT ROWID, ${baseFilter} FROM Models`, (err, rows) => {
+        modelsDb.all(`SELECT ROWID, ${currentFilter} FROM Models`, (err, rows) => {
             if (err) {
                 console.log(err);
                 const errorObj = {
@@ -48,20 +48,23 @@ app.get('', (req, res) => {
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return;
             }
-            let names = []
-            rows.map(json => {
-                if (!names.includes(`<option>${json[baseFilter]}</option>`))
-                    names.push(`<option>${json[baseFilter]}</option>`)
-            })
+
             let filters = []
-            resources.ColumnsName.forEach(column => {
+            resources.ColumnsName.forEach(column =>{
                 filters.push(`<option>${column}</option>`)
+            })
+
+            let fields = []
+            //might be duplicates
+            rows.map(json => {
+                if (!fields.includes(`<option>${json[currentFilter]}</option>`))
+                    fields.push(`<option>${json[currentFilter]}</option>`)
             })
             app.use(express.static('public/MainPage'));
             return res.status(200).send(
                 resources.HtmlTemplates.Index
-                    .replace('{{%FIELDS%}}', names)
-                    .replace('{{%FILTERS%}}', filters))
+                    .replace('{{%FILTERS%}}', filters)
+                    .replace('{{%FIELDS%}}', fields))
         })
     })
 })
