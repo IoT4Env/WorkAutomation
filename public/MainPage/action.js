@@ -18,7 +18,7 @@ window.onload = async()=>{
 
 let linkString = getLink.getAttribute('href')
 
-getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
+getLink.setAttribute('href', linkString.replace('Field', fields.value))
 
 //#region Chars restriction
 for (let i = 0; i < inputs.length - 1; i++) {
@@ -31,7 +31,7 @@ for (let i = 0; i < inputs.length - 1; i++) {
 //#region dynamic DDL
 
 fields.addEventListener('change', _ => {
-    getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
+    getLink.setAttribute('href', linkString.replace('Field', fields.value))
 })
 
 filters.addEventListener('change', _ => {
@@ -40,7 +40,9 @@ filters.addEventListener('change', _ => {
             res.text().then(filedsRes => {
                 filedsArr = JSON.parse(filedsRes);
                 fields.innerHTML = filedsArr.join(',')
-                getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
+                getLink.setAttribute('href', linkString
+                    .replace('Filter', filters.value)
+                    .replace('Field', fields.value))
             })
         })
 })
