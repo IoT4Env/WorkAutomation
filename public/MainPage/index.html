@@ -15,13 +15,16 @@
             <button id="GETS">GETS</button>
         </a>
 
-        <label>Filter by name
-            <select id="names">
-                <option>OPTIONS</option>
-                {{%Names%}}
+        <label for="filter">Filter by:
+            <select id="filter">
+                {{%FILTER%}}
             </select>
         </label>
-        <a id="GET-Link" href="/CRUD/Name=_Name_">
+
+        <select id="field">
+            {{%FIELD%}}
+        </select>
+        <a id="get-link" href="/CRUD/Filter=Field">
             <button id="GET">GET</button>
         </a>
 
@@ -59,6 +62,6 @@
     </div>
 </body>
 
-<script src="action.js"></script>
+<script defer src="action.js"></script>
 
 </html>
