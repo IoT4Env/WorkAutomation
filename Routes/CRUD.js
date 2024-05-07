@@ -221,11 +221,14 @@ crud.get('/deleteMany/:ids', (req, res) => {
     const rawIds = req.params.ids;
     const ids = JSON.parse(rawIds)
 
+    console.log('test');
+    let rowidsSelect = []
+    ids.forEach(id =>rowidsSelect.push(`ROWID = ${id}`))
+
     modelsDb.serialize(_ => {
-        modelsDb.run(`DELETE FROM Models WHERE ROWID = ${ids[0]} OR ROWID = ${ids[1]}`,
+        modelsDb.run(`DELETE FROM Models WHERE ${rowidsSelect.join(' OR ')}`,
             (err) => {
                 if (err) {
-                    console.log(err);
                     const errorObj = {
                         Code: 3,
                         Body: err
