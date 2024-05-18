@@ -1,10 +1,23 @@
 const deletes = document.querySelectorAll('.delete-many'),
     deletesLink = document.querySelector('#delete-many-link'),
-    deleteSelected = document.querySelector('#delete-selected')
+    deleteSelected = document.querySelector('#delete-selected'),
+    deleteImgs = document.querySelectorAll('.delete-image'),
+    dialogBoxes = document.querySelectorAll('.confirm-delete-box')
 
 
 const linkString = deletesLink.getAttribute('href');
 let checkedArray = []
+
+let delImgIndex = 0
+
+//#region Confirm deletion
+deleteImgs.forEach(delImg =>{
+    delImg.addEventListener('click', _=>{
+        dialogBoxes[delImgIndex++].style.visibility = 'visible'
+    })
+})
+
+//#endregion
 
 //#region Delete many logic
 //deleteSelected button disabled by default

@@ -45,6 +45,11 @@ crud.get('/', (req, res) => {
     })
 })
 
+//Build get api foreach column
+resources.ColumnsName.forEach(filter => {
+    crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
+})
+
 function filters(req, res, filter) {
     let field = req.params.Field
 
@@ -74,11 +79,6 @@ function filters(req, res, filter) {
             })
     })
 }
-
-//Build get api foreach column
-resources.ColumnsName.forEach(filter => {
-    crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
-})
 
 //Insert data in the Models table
 crud.post('/', (req, res) => {

@@ -34,3 +34,10 @@ th{
     right: 5px;
     float: right;
 }
+
+/* In the contentBody.html file */
+.confirm-delete-box{
+    position: fixed;
+    visibility: hidden;
+    z-index: 3;
+}

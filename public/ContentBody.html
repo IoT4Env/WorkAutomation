@@ -7,9 +7,17 @@
         <a href="/CRUD/Id={{%Id%}}">
             <button id="update-row">UPDATE</button>
         </a>
-        <a href="/CRUD/delete/Id={{%Id%}}">
-            <img id="delete-image" src="../Images/delete.png">
-        </a>
-        <input id="{{%Id%}}" class="delete-many" type="checkbox"/>
+
+        <img class="delete-image" src="../Images/delete.png">
+
+        <input id="{{%Id%}}" class="delete-many" type="checkbox" />
     </th>
 </tr>
+
+<div class="confirm-delete-box">
+    <p>Confirm deletion</p>
+    <button>No</button>
+    <a href="/CRUD/delete/Id={{%Id%}}">
+        <button>Yes</button>
+    </a>
+</div>
