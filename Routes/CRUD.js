@@ -184,7 +184,7 @@ crud.get('/update/Id=:id', (req, res) => {
                     }
                 };
                 await fetch(`${localhost}/CRUD/update/Id=${id}`, options)
-                    .then(res.status(200).send(jsonObject))
+                    .then(res.status(200).send(returnBackButton + resources.HtmlTemplates.UpdateRes))
             })
     })
 })
