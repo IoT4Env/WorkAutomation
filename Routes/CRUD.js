@@ -127,7 +127,7 @@ crud.get('/Id=:id', (req, res) => {
             let getElementsRow = replacedRow.split('\n')
             let content = [];
 
-            for (let i = 1; i < getElementsRow.length - 1; i++) {
+            for (let i = 1; i < columnsName.length + 1; i++) {
                 content.push(`<th>
                     <input value="${getElementsRow[i]
                         .trim()
@@ -278,7 +278,9 @@ function replaceRows(rows) {
  */
 function rowsRefinment(replacedRows) {
     let subString = replacedRows.split('</th>')
-    subString.splice(subString.length - 2, 1)
+    //eliminate elements starting from columnsName.length + 1 to the end of array
+    //columnsName.length + 1 is required for the additional '<tr>' present in the array
+    subString.splice(columnsName.length + 1, subString.length - columnsName.length)
     return subString.join('</th>')
 }
 
