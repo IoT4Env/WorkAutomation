@@ -221,7 +221,6 @@ crud.get('/deleteMany/:ids', (req, res) => {
     const rawIds = req.params.ids;
     const ids = JSON.parse(rawIds)
 
-    console.log('test');
     let rowidsSelect = []
     ids.forEach(id =>rowidsSelect.push(`ROWID = ${id}`))
 
