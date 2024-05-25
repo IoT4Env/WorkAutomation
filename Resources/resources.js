@@ -13,6 +13,7 @@ export default class Resources {
     //DDL = Drop Down List
     HtmlTemplates = {
         Index: readFileSync(join(this.__dirname, '../public/MainPage/index.html'), 'utf-8'),
+        HamburgerMenu: readFileSync(join(this.__dirname, '../public/HamburgerMenu/hamburgerMenu.html'), 'utf-8'),
         Content: readFileSync(join(this.__dirname, '../public/CttBody/ContentBody.html'), 'utf-8'),
         ConfirmDeletion: readFileSync(join(this.__dirname, '../public/ConfirmDeletion/ConfirmDeletion.html'), 'utf-8'),
         Get: readFileSync(join(this.__dirname, '../public/GETS/gets.html'), 'utf-8'),
