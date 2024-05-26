@@ -1,6 +1,8 @@
 import express from 'express';
+import helmet from 'helmet';
 
 const handleError = express()
+handleError.use(helmet())
 
 handleError.get('/:err', (req, res) => {
     const {Code, Body} = JSON.parse(req.params.err)

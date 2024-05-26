@@ -5,6 +5,7 @@ import crud from './Routes/CRUD.js';
 import image from './Views/imageView.js';
 import handleError from './Views/handleError.js';
 import fileUpload from './Routes/FileUpload.js';
+import menu from './Routes/menu.js'
 import fetchResources from './Views/fetchResources.js'
 
 import Resources from './Resources/resources.js'
@@ -29,6 +30,7 @@ app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
 app.use('/fetchResources', fetchResources)
+app.use('/menu', menu)
 
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
