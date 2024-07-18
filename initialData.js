@@ -6,8 +6,8 @@ import Resources from './Resources/resources.js'
 
 const resources = new Resources();
 
-export default class InitialData{
-    initialData = (odsFile) => decompress(odsFile, {
+export default class InitialData {
+    getInitialData = (odsFile) => decompress(odsFile, {
         filter: file => path.basename(file.path) === 'content.xml'
     }).then(files => {
         /**
@@ -16,9 +16,12 @@ export default class InitialData{
         const xmlData = files[0].data.toString().split('><').join('>\n<').split('\n')
         const csvData = xmlToCsv(xmlData)
         const sqlQuery = csvToSql(csvData)
-    
+
         fs.writeFileSync(path.join(resources.__dirname, '/SqlQueries/insertByJs.sql'), sqlQuery)
-    });    
+
+    }).catch(error => {
+        throw error
+    });
 }
 
 /**
@@ -33,6 +36,7 @@ function xmlToCsv(xml) {
     // The end of a row in the ods file needs corresponds to 2 xml tags to be closed (cell and row)
     // AND 2 xml tags to be opened (cell and row)
     let rowDelimitator = 0
+    let exceptions = []
     xml.forEach(data => {
         let index = data.indexOf('>')
 
@@ -45,6 +49,15 @@ function xmlToCsv(xml) {
             while (data[++index] != '<') {
                 cellContent += data[index]
             }
+
+            //verify that the cell does not contain special chars for potential sql injections
+            if (!validChars(cellContent, ['&apos;', '&quot;', '`', '\\', '/'])) {//check only those chars to avoid weird api paths
+                //if the cell has chars '", they are interpreted as "&apos;" and "&quot;"
+                //backtich is fine as it is
+                exceptions.push(cellContent)//wrong cellContents should go in a log file...
+                return;
+            }
+
             if (/[^0-9]/.test(cellContent)) {
                 cellContent = `"${cellContent}"`
             }
@@ -59,6 +72,12 @@ function xmlToCsv(xml) {
             rowDelimitator = 0;
         }
     })
+
+    if (exceptions.length !== 0) {
+        //write cells inside a log file
+        throw "Invalid chars inside one or more cells of the ODS"
+    }
+
     return fullOdsContent
 }
 
@@ -75,4 +94,13 @@ function csvToSql(csv) {
     return `INSERT INTO Models (${csv[0]
         .replace(/;/g, ',')
         .replace(/"/g, '')}) VALUES \n${sqlValues.join(',\n')};`
+}
+
+function validChars(str, chars){
+    for(let i = 0; i <= chars.length - 1; i++){
+        if(str.includes(chars[i])){
+            return false
+        }
+    }
+    return true
 }
