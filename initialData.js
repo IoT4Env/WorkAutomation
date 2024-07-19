@@ -13,6 +13,10 @@ export default class InitialData {
         /**
          * file-like representation of the actual file
          */
+        const logFolder = path.join(resources.__dirname, '../DefenceLog/')
+        if (!fs.existsSync(logFolder))
+            fs.mkdirSync(logFolder)
+
         const xmlData = files[0].data.toString().split('><').join('>\n<').split('\n')
         const csvData = xmlToCsv(xmlData)
         const sqlQuery = csvToSql(csvData)
@@ -51,9 +55,10 @@ function xmlToCsv(xml) {
             }
 
             //verify that the cell does not contain special chars for potential sql injections
-            if (!validChars(cellContent, ['&apos;', '&quot;', '`', '\\', '/'])) {//check only those chars to avoid weird api paths
+            if (!validChars(cellContent, ['&apos;', '&quot;', '`', '\\', '/', '\u2018'])) {//check only those chars to avoid weird api paths
                 //if the cell has chars '", they are interpreted as "&apos;" and "&quot;"
                 //backtich is fine as it is
+                //single quote surrounded by spaces is interpreted as the uni code U+2018 (NOT a single quote).
                 exceptions.push(cellContent)//wrong cellContents should go in a log file...
                 return;
             }
@@ -75,6 +80,9 @@ function xmlToCsv(xml) {
 
     if (exceptions.length !== 0) {
         //write cells inside a log file
+        const date = new Date()
+        let logAttackInfo = `registered attack(s) at ${date.toLocaleDateString()} ${date.toLocaleTimeString()}:\n${exceptions.join('\n')}\n`
+        fs.appendFileSync(path.join(resources.__dirname, '../DefenceLog/defendedAttack.log'), logAttackInfo)
         throw "Invalid chars inside one or more cells of the ODS"
     }
 
@@ -96,9 +104,9 @@ function csvToSql(csv) {
         .replace(/"/g, '')}) VALUES \n${sqlValues.join(',\n')};`
 }
 
-function validChars(str, chars){
-    for(let i = 0; i <= chars.length - 1; i++){
-        if(str.includes(chars[i])){
+function validChars(str, chars) {
+    for (let i = 0; i <= chars.length - 1; i++) {
+        if (str.includes(chars[i])) {
             return false
         }
     }
