@@ -2,23 +2,46 @@ import decompress from "decompress";
 import path from 'path'
 import fs from 'fs'
 
+import Config from './Resources/config.js'
 import Resources from './Resources/resources.js'
 
+
+const config = new Config()
 const resources = new Resources();
+let fileName
 
 export default class InitialData{
     initialData = (odsFile) => decompress(odsFile, {
         filter: file => path.basename(file.path) === 'content.xml'
-    }).then(files => {
+    }).then(async files => {
+        fileName = getOdsFileName(odsFile)
         /**
          * file-like representation of the actual file
          */
         const xmlData = files[0].data.toString().split('><').join('>\n<').split('\n')
         const csvData = xmlToCsv(xmlData)
-        const sqlQuery = csvToSql(csvData)
-    
-        fs.writeFileSync(path.join(resources.__dirname, '/SqlQueries/insertByJs.sql'), sqlQuery)
+        const sqlInsertSql = csvToInsertSql(csvData)
+        const csvCreateTableSql = csvToCreateTableSql(csvData)
+
+        //write to the same file the necessary queries
+        fs.writeFileSync(path.join(resources.__dirname, `/SqlQueries/${fileName}.sql`), csvCreateTableSql, 'utf-8')
+        await fetch(`${config.URL}/queries/createTable/${fileName}`,{
+            method: 'POST'
+        })
+        
+        fs.writeFileSync(path.join(resources.__dirname, `/SqlQueries/${fileName}.sql`), sqlInsertSql, 'utf-8')
+        await fetch(`${config.URL}/queries/insert/${fileName}`,{
+            method: 'POST'
+        })
+
+        //delete file at the end of the n operations
+        fs.rmSync(path.join(resources.__dirname, `/SqlQueries/${fileName}.sql`))
     });    
+}
+
+function getOdsFileName(odsFileName){
+    const splittedPath = odsFileName.split('/')
+    return splittedPath[splittedPath.length - 1].split('.')[0]//fileName
 }
 
 /**
@@ -62,17 +85,29 @@ function xmlToCsv(xml) {
     return fullOdsContent
 }
 
+function csvToCreateTableSql(csv){
+    let columnNames = csv[0].replace(/"/g, '').split(';')
+    let createTableSql = []
+    for(let i = 0; i < columnNames.length; i++){
+        //for the sake of simplicity, we treat all columns as strings
+        createTableSql.push(`${columnNames[i]} VARCHAR(50) NOT NULL`)
+    }
+    return `CREATE TABLE IF NOT EXISTS ${fileName} (${createTableSql.join(',')});`
+}
+
 /**
  * 
  * @param {string} csv A semicolon separated value string
  * @returns An sql query to execute on the database
  */
-function csvToSql(csv) {
+function csvToInsertSql(csv) {
     let sqlValues = []
     for (let i = 1; i < csv.length; i++) {
         sqlValues.push(`(${csv[i].replace(/;/g, ',')})`)
     }
-    return `INSERT INTO Models (${csv[0]
+
+    //the OS guarantees no special chars inside the file name
+    return `INSERT INTO ${fileName} (${csv[0]
         .replace(/;/g, ',')
         .replace(/"/g, '')}) VALUES \n${sqlValues.join(',\n')};`
 }

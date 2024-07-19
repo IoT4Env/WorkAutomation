@@ -31,7 +31,7 @@ export default class Resources {
     
     ReturnBackButton = `<button><a href="/">BACK</a></button>`
 
-    //Names as params, so must be capitalized
+    //Names as params, so must be Pascal case
     ColumnsName = [
         "Name",
         "Surname",
