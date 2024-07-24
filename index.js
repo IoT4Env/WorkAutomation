@@ -9,11 +9,13 @@ import menu from './Routes/menu.js'
 import fetchResources from './Views/fetchResources.js'
 import queries from './Routes/initialDataQuery.js'
 
-import Resources from './Resources/resources.js'
 import Config from './Resources/config.js'
+import Resources from './Resources/resources.js'
+import PreparationQueries from './Resources/dbQueries.js'
 
-const resources = new Resources();
 const config = new Config();
+const resources = new Resources();
+const preparationQueries = new PreparationQueries()
 
 const SERVER_PORT = config.SERVER_PORT
 const SERVER_HOSTNAME = config.SERVER_HOSTNAME
@@ -21,6 +23,7 @@ const localhost = config.URL;
 
 const modelsDb = resources.ModelsDb;
 let currentFilter = resources.ColumnsName[0].toLowerCase()
+let tables = preparationQueries.getTables()//get all tables inside database
 
 const app = express();
 app.use(helmet())
@@ -40,9 +43,9 @@ app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
 })
 
 //Gets main page
-app.get('', async (req, res) => {
+app.get('', (req, res) => {
     modelsDb.serialize(_ => {
-        modelsDb.all(`SELECT ROWID, ${currentFilter} FROM Models`, (err, rows) => {
+        modelsDb.all(`SELECT ROWID, ${currentFilter} FROM Models`, async (err, rows) => {
             if (err) {
                 const errorObj = {
                     "Code": 1,
@@ -65,10 +68,17 @@ app.get('', async (req, res) => {
             })
             app.use(express.static('public/MainPage'));
             app.use(express.static('public/HamburgerMenu'));
+
+            let tablesOption = []
+            tables.forEach(table =>{
+                tablesOption.push(`<option>${table.name}</option>`)
+            })
+
             return res.status(200).send(
                 resources.HtmlTemplates.Index
                     .replace('{{%FILTER%}}', filters)
-                    .replace('{{%FIELD%}}', uniqueFields) + resources.HtmlTemplates.HamburgerMenu)
+                    .replace('{{%FIELD%}}', uniqueFields)
+                    .replace('{{%TABLES%}}', tablesOption) + resources.HtmlTemplates.HamburgerMenu)
         })
     })
 })

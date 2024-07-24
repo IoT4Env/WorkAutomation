@@ -45,6 +45,16 @@ export default class Resources {
         }
     }
 
+    GetTables = _ =>{
+        let tablesContainer
+        this.ModelsDb.serialize(_=>{
+            this.ModelsDb.all(`SELECT name FROM sqlite_master WHERE type='table'`, (err, tables) =>{
+                tablesContainer = tables
+            })
+        })
+        return tablesContainer
+    }
+
     UpdateMenuConfig = (data) => {
         writeFileSync(this.MenuConfigPath, JSON.stringify(data))
     }
