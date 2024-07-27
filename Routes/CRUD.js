@@ -20,17 +20,23 @@ const columnsName = resources.ColumnsName;
 
 const modelsDb = dbInfo.ModelsDb;
 
+let currentTable = DbInfo.CurrentTable
+
 const crud = express()
 crud.use(helmet())
 crud.use(express.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
+function tableChange(){
+    currentTable = DbInfo.CurrentTable === currentTable ? currentTable : DbInfo.CurrentTable
+}
 
 //Gets all elements from the Models table
 crud.get('/', (req, res) => {
+    tableChange()
     modelsDb.serialize(_ => {
-        modelsDb.all('SELECT ROWID, * FROM Models', (err, rows) => {
+        modelsDb.all(`SELECT ROWID, * FROM ${currentTable}`, (err, rows) => {
             if (err) {
                 const errorObj = {
                     Code: 1,
@@ -61,6 +67,7 @@ function filters(req, res, filter) {
         return
     }
 
+    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, * FROM Models WHERE ${filter} = $Field`,
             {
@@ -95,6 +102,7 @@ crud.post('/', (req, res) => {
         $Mail: req.body.mail || null,
     };
 
+    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.run('INSERT INTO Models(name, surname, address, mail) VALUES ($Name, $Surname, $Address, $Mail)',
             jsonObject, (err) => {
@@ -116,6 +124,7 @@ crud.get('/Id=:id', (req, res) => {
     crud.use(express.static('./public/UPDATE'))
     let id = req.params.id
 
+    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.all('SELECT ROWID, * FROM Models WHERE ROWID = $Id', {
             $Id: id
@@ -167,6 +176,7 @@ crud.get('/update/Id=:id', (req, res) => {
         jsonObject[`$${columnsName[i]}`] = urlParams[i].split('=')[1] || null
     }
 
+    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.run(`UPDATE Models SET
         name = $Name,
@@ -198,6 +208,8 @@ crud.get('/update/Id=:id', (req, res) => {
 //Delete specific element by id
 crud.get('/delete/Id=:id', (req, res) => {
     let id = req.params.id
+
+    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.run('DELETE FROM Models WHERE ROWID = $Id', {
             $Id: id
@@ -230,6 +242,7 @@ crud.get('/deleteMany/:ids', (req, res) => {
     let rowidsSelect = []
     ids.forEach(id => rowidsSelect.push(`ROWID = ${id}`))
 
+    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.run(`DELETE FROM Models WHERE ${rowidsSelect.join(' OR ')}`,
             (err) => {

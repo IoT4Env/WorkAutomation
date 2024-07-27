@@ -14,6 +14,11 @@ let lastFilter
 const frontBack = express()
 frontBack.use(helmet())
 
+frontBack.get('/update/:tableName', (req,res) =>{
+    res.status(200).send(DbInfo.updateTable(req.params.tableName))
+    return
+})
+
 frontBack.get('/columns/:tableName', async (req, res) => {
     res.status(200).send(await Promise.resolve(dbInfo.getColumnNames(req.params.tableName)));
     return

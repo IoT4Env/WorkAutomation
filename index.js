@@ -61,6 +61,8 @@ app.get('', async (req, res) => {
                 return;
             }
 
+            DbInfo.updateTable(currentTable)
+
             let filters = []
             columnNames.forEach(column => {
                 filters.push(`<option>${column}</option>`)
