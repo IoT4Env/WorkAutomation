@@ -1,4 +1,3 @@
-import SQLite3 from 'sqlite3';
 import { readFileSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { fileURLToPath } from 'url';
@@ -7,8 +6,6 @@ import { fileURLToPath } from 'url';
 export default class Resources {
     __filename = fileURLToPath(import.meta.url);
     __dirname = path.dirname(this.__filename);
-
-    ModelsDb = new SQLite3.Database(join(this.__dirname, '../Databases/models.db'));
 
     //DDL = Drop Down List
     HtmlTemplates = {
@@ -32,6 +29,9 @@ export default class Resources {
     ReturnBackButton = `<button><a href="/">BACK</a></button>`
 
     //Names as params, so must be Pascal case
+    //transform into a function to get columns name based on table name
+
+
     ColumnsName = [
         "Name",
         "Surname",
@@ -43,16 +43,6 @@ export default class Resources {
         GetByField: (field) =>{
             return `SELECT ROWID, ${field} FROM Models`
         }
-    }
-
-    GetTables = _ =>{
-        let tablesContainer
-        this.ModelsDb.serialize(_=>{
-            this.ModelsDb.all(`SELECT name FROM sqlite_master WHERE type='table'`, (err, tables) =>{
-                tablesContainer = tables
-            })
-        })
-        return tablesContainer
     }
 
     UpdateMenuConfig = (data) => {

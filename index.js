@@ -11,19 +11,22 @@ import queries from './Routes/initialDataQuery.js'
 
 import Config from './Resources/config.js'
 import Resources from './Resources/resources.js'
-import PreparationQueries from './Resources/dbQueries.js'
+import DbInfo from './Resources/dbQueries.js'
 
 const config = new Config();
 const resources = new Resources();
-const preparationQueries = new PreparationQueries()
+const dbInfo = new DbInfo()
 
 const SERVER_PORT = config.SERVER_PORT
 const SERVER_HOSTNAME = config.SERVER_HOSTNAME
 const localhost = config.URL;
 
-const modelsDb = resources.ModelsDb;
-let currentFilter = resources.ColumnsName[0].toLowerCase()
-let tables = preparationQueries.getTables()//get all tables inside database
+const modelsDb = dbInfo.ModelsDb;
+
+let tables = await Promise.resolve(dbInfo.getTables())
+let columnNames = await Promise.resolve(dbInfo.getColumnNames(tables[0].name))
+
+let currentFilter = columnNames[0].toLowerCase()
 
 const app = express();
 app.use(helmet())
@@ -42,8 +45,9 @@ app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
     console.log(`Server started on ${localhost}`)
 })
 
+
 //Gets main page
-app.get('', (req, res) => {
+app.get('', async (req, res) => {
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, ${currentFilter} FROM Models`, async (err, rows) => {
             if (err) {
@@ -51,12 +55,13 @@ app.get('', (req, res) => {
                     "Code": 1,
                     "Body": err
                 }
+
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return;
             }
 
             let filters = []
-            resources.ColumnsName.forEach(column =>{
+            columnNames.forEach(column => {
                 filters.push(`<option>${column}</option>`)
             })
 
@@ -70,7 +75,7 @@ app.get('', (req, res) => {
             app.use(express.static('public/HamburgerMenu'));
 
             let tablesOption = []
-            tables.forEach(table =>{
+            tables.forEach(table => {
                 tablesOption.push(`<option>${table.name}</option>`)
             })
 
