@@ -40,8 +40,8 @@ export default class Resources {
     ]
 
     SqlQueries = {
-        GetByField: (field) =>{
-            return `SELECT ROWID, ${field} FROM Models`
+        GetByField: (field, table) =>{
+            return `SELECT ROWID, ${field} FROM ${table}`
         }
     }
 

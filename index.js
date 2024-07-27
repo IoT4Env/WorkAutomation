@@ -26,6 +26,7 @@ const modelsDb = dbInfo.ModelsDb;
 let tables = await Promise.resolve(dbInfo.getTables())
 let columnNames = await Promise.resolve(dbInfo.getColumnNames(tables[0].name))
 
+let currentTable = tables[0].name
 let currentFilter = columnNames[0].toLowerCase()
 
 const app = express();
@@ -49,7 +50,7 @@ app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
 //Gets main page
 app.get('', async (req, res) => {
     modelsDb.serialize(_ => {
-        modelsDb.all(`SELECT ROWID, ${currentFilter} FROM Models`, async (err, rows) => {
+        modelsDb.all(`SELECT ROWID, ${currentFilter} FROM ${currentTable}`, async (err, rows) => {
             if (err) {
                 const errorObj = {
                     "Code": 1,
