@@ -56,6 +56,7 @@ app.get('', async (req, res) => {
                     "Code": 1,
                     "Body": err
                 }
+                console.log(err);
 
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return;

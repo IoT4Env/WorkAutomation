@@ -25,7 +25,6 @@ let linkString = getLink.getAttribute('href')
 getLink.setAttribute('href', linkString.replace('Field', field.value).replace('Filter', filter.value))
 
 
-//below region contains repeated code
 //#region Configure main page based on table selected
 tableSelection.addEventListener('change', async _ => {
     tableSelected = tableSelection.value

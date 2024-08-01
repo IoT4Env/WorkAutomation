@@ -1,4 +1,4 @@
-import express, { response } from 'express';
+import express from 'express';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
 
@@ -31,6 +31,12 @@ crud.use(express.static('./public/'))
 function tableChange(){
     currentTable = DbInfo.CurrentTable === currentTable ? currentTable : DbInfo.CurrentTable
 }
+
+
+crud.all('/*', (req,res,next) =>{
+    console.log('always call');
+    next()
+})
 
 //Gets all elements from the Models table
 crud.get('/', (req, res) => {
