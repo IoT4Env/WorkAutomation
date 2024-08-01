@@ -82,11 +82,19 @@ app.get('', async (req, res) => {
                 tablesOption.push(`<option>${table.name}</option>`)
             })
 
+            let formFields = []
+            columnNames.forEach(column =>{
+                formFields.push(`<label>${column}
+                        <input type="text" name="${column.toLowerCase()}" required>
+                        </label>`)
+            })
+
             return res.status(200).send(
                 resources.HtmlTemplates.Index
                     .replace('{{%FILTER%}}', filters)
                     .replace('{{%FIELD%}}', uniqueFields)
-                    .replace('{{%TABLES%}}', tablesOption) + resources.HtmlTemplates.HamburgerMenu)
+                    .replace('{{%TABLES%}}', tablesOption)
+                    .replace('{{%FORM_FIELDS%}}', formFields.join('')) + resources.HtmlTemplates.HamburgerMenu)
         })
     })
 })

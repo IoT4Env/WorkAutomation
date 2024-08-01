@@ -3,7 +3,8 @@ const field = document.querySelector('#field'),
     getLink = document.querySelector('#get-link'),
     inputs = document.getElementsByTagName('input'),
     fileInputs = document.querySelectorAll('input[type=file]'),
-    tableSelection = document.querySelector('#table-selection')
+    tableSelection = document.querySelector('#table-selection'),
+    insertFields = document.querySelector('#insert-fields')
 
 let columns = []
 let fieldsArr;
@@ -40,6 +41,15 @@ tableSelection.addEventListener('change', async _ => {
                 updataedFilters.push(`<option>${column}</option>`)
             })
             filter.innerHTML = updataedFilters
+
+            let updateFormFields = []
+            columns.forEach(column =>{
+                updateFormFields.push(`<label>${column}
+                        <input type="text" name="${column.toLowerCase()}" required>
+                        </label>`)
+            })
+            console.log(updateFormFields);
+            insertFields.innerHTML = updateFormFields.join('')
         })
     })
 
