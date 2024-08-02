@@ -7,9 +7,8 @@ import DbInfo from '../Resources/dbQueries.js'
 
 
 const resources = new Resources()
-const dbInfo = new DbInfo()
 
-const modelsDb = dbInfo.ModelsDb;
+const modelsDb = DbInfo.ModelsDb;
 
 const queries = express()
 

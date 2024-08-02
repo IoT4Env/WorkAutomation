@@ -10,12 +10,11 @@ import DbInfo from '../Resources/dbQueries.js'
 
 const initialData = new InitialData();
 const resources = new Resources();
-const dbInfo = new DbInfo()
 
 const htmlTemplates = resources.HtmlTemplates;
 const returnBack = resources.ReturnBackButton
 
-const modelsDb = dbInfo.ModelsDb;
+const modelsDb = DbInfo.ModelsDb;
 
 const fileUpload = express();
 fileUpload.use(helmet())
