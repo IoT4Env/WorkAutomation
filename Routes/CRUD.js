@@ -18,6 +18,7 @@ const returnBackButton = resources.ReturnBackButton;
 const modelsDb = DbInfo.ModelsDb;
 
 let currentTable = DbInfo.CurrentTable
+const tables = await Promise.resolve(DbInfo.getTables())
 let columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
 
 const crud = express()
@@ -25,6 +26,17 @@ crud.use(helmet())
 crud.use(express.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
+
+async function configureGetApis(){
+    tables.forEach(async table =>{
+        let columns = await Promise.resolve(DbInfo.getColumnNames(table.name))
+        columns.forEach(filter => {
+            crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
+        })
+    })
+}
+
+await configureGetApis()
 
 async function tableChange(){
     if(DbInfo.CurrentTable === currentTable){
@@ -64,9 +76,9 @@ crud.get('/', (req, res) => {
 })
 
 //Build get api foreach column
-resources.ColumnsName.forEach(filter => {
-    crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
-})
+// columnsName.forEach(filter => {
+//     crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
+// })
 
 function filters(req, res, filter) {
     let field = req.params.Field
@@ -94,29 +106,42 @@ function filters(req, res, filter) {
 
                 let replacedRows = replaceRows(rows)
                 let deleteId = replaceId(rows)
-                res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows + deleteId))
+                let columns = replaceColumns()
+                res.status(200).send(get.replace('{{%Content%}}', replacedRows)
+                                        .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId))
+                })
                 return
-            })
     })
 }
 
 //Insert data in the Models table
 crud.post('/', (req, res) => {
     crud.use(express.static('./public/POST'))
-    let jsonObject = {
-        $Name: req.body.name || null,
-        $Surname: req.body.surname || null,
-        $Address: req.body.address || null,
-        $Mail: req.body.mail || null,
-    };
+    let jsonObject = {};
+
+    //construct the json object with column names and associated value
+    columnsName.forEach(column => {
+        jsonObject[column] = req.body[column.toLowerCase()]
+    })
+
+    //extracts columns from json
+    const columns = Object.keys(jsonObject).map(column =>{
+        return column.toLowerCase()
+    }).join(',')
+
+    //extracts values from json
+    const values = Object.values(jsonObject).map(value =>{
+        return `"${value}"`
+    }).join(',')
 
     modelsDb.serialize(_ => {
-        modelsDb.run('INSERT INTO Models(name, surname, address, mail) VALUES ($Name, $Surname, $Address, $Mail)',
-            jsonObject, (err) => {
+        let query = `INSERT INTO ${currentTable} (${columns}) VALUES (${values})`
+        modelsDb.run(query,//dynamic insert query achived!
+            (err) => {
                 if (err) {
                     const errorObj = {
                         "Code": 0,
-                        "Body": err
+                        "Body": err.message
                     }
                     res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                     return
@@ -272,6 +297,10 @@ crud.get('/deleteMany/:ids', (req, res) => {
     })
 })
 
+/**
+ * 
+ * @returns Column names of the current table formatted to be rendered in the html page
+ */
 function replaceColumns(){
     let replacedColumns = []
     columnsName.forEach(column =>{
