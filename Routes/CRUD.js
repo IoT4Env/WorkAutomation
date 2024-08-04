@@ -157,65 +157,61 @@ crud.get('/Id=:id', (req, res) => {
     let id = req.params.id
 
     modelsDb.serialize(_ => {
-        modelsDb.all('SELECT ROWID, * FROM Models WHERE ROWID = $Id', {
-            $Id: id
-        }, (err, row) => {
+        modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ROWID = ${id}`, (err, rows) => {
             if (err) {
                 const errorObj = {
                     Code: 1,
                     Body: err
                 }
-                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
+                res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
             }
-            let replacedRow = rowsRefinment(replaceRows(row))
-            let getElementsRow = replacedRow.split('\n')
-            let content = [];
-
-            //i = 3 is the offset from witch to start getting the elements interested on the update, the columns parameters
-            for (let i = 3; i < columnsName.length + 3; i++) {
-                content.push(`<th>
-                    <input value="${getElementsRow[i]
-                        .trim()
-                        .substring(4, getElementsRow[i].trim().length - 5)}"
-                    type="text"
-                    required
-                    name="${columnsName[i - 1]}">
-                    </th>`)
-            }
-            res.status(200).send(returnBackButton + htmlTemplates.Update.
-                replace('{{%Content%}}', content.join(''))
+            let updatedRows = updateRows(rows)
+            let columns = replaceColumns()
+            res.status(200).send(returnBackButton + htmlTemplates.Update
+                .replace('{{%Content%}}', updatedRows)
+                .replace('{{%COLUMNS%}}', columns)
                 .replace(/{{%Id%}}/g, id))
+            
+            return
         })
     })
 })
 
-/*
-Since we are working on localhost environment, we can accept the loss on security
-If i wanted to use the post method, i would need to create a new resourse on the db
-and then delete the old value, thus preserving some of the security
-*/
 //The updated data replaces the old data
-crud.get('/update/Id=:id', (req, res) => {
-    const fullUrl = req.url
-    const urlParams = fullUrl.split('?')[1].split('&')
-    let id = req.params.id
-    let jsonObject = {
-        $Id: id,
-    };
-    for (let i = 0; i < urlParams.length; i++) {
-        jsonObject[`$${columnsName[i]}`] = urlParams[i].split('=')[1] || null
+crud.post('/update/Id=:id', (req, res) => {
+    const id = req.params.id
+    let jsonObject = {};
+
+    //construct the json object with column names and associated value
+    columnsName.forEach(column => {
+        jsonObject[column] = req.body[column.toLowerCase()]
+    })
+
+    //extracts columns from json
+    const columns = Object.keys(jsonObject).map(column =>{
+        return column.toLowerCase()
+    })
+
+    //extracts values from json
+    const values = Object.values(jsonObject).map(value =>{
+        return `"${value}"`
+    })
+
+    let keyValue = []
+    for(let i = 0; i < columnsName.length; i++){
+        keyValue.push(`${columns[i]} = ${values[i]}`)
     }
 
     modelsDb.serialize(_ => {
-        modelsDb.run(`UPDATE Models SET
-        name = $Name,
-        surname = $Surname,
-        address = $Address,
-        mail = $Mail
-        WHERE ROWID = $Id`,
-            jsonObject, async (err) => {
+        let query = `UPDATE ${currentTable} 
+        SET ${keyValue.join(',')} 
+        WHERE ROWID = ${id}` 
+
+        modelsDb.run(query,
+        async (err) => {
                 if (err) {
+                    console.log(err.message);
                     const errorObj = {
                         Code: 2,
                         Body: err
@@ -240,7 +236,7 @@ crud.get('/delete/Id=:id', (req, res) => {
     let id = req.params.id
 
     modelsDb.serialize(_ => {
-        modelsDb.run('DELETE FROM Models WHERE ROWID = $Id', {
+        modelsDb.run(`DELETE FROM ${currentTable} WHERE ROWID = $Id`, {
             $Id: id
         }, (err) => {
             if (err) {
@@ -272,7 +268,7 @@ crud.get('/deleteMany/:ids', (req, res) => {
     ids.forEach(id => rowidsSelect.push(`ROWID = ${id}`))
 
     modelsDb.serialize(_ => {
-        modelsDb.run(`DELETE FROM Models WHERE ${rowidsSelect.join(' OR ')}`,
+        modelsDb.run(`DELETE FROM ${currentTable} WHERE ${rowidsSelect.join(' OR ')}`,
             (err) => {
                 if (err) {
                     const errorObj = {
@@ -325,7 +321,7 @@ function replaceRows(rows) {
             let columnName = `${columnsName[j].toLowerCase()}`
             row += `<th>${values[i][columnName]}</th>`
         }
-        replacedRows.push(htmlTemplates.Content.replace('{{%ROW%}}', row))
+        replacedRows.push(htmlTemplates.Content.replace('{{%ROW%}}', row).replace(/{{%Id%}}/g, values[i]['rowid']))
     }
 
     return replacedRows.join(' ');
@@ -336,12 +332,25 @@ function replaceRows(rows) {
  * @param {Array} replacedRows Raw replaced rows that need more work before displaying on html
  * @returns A refined version of raws
  */
-function rowsRefinment(replacedRows) {
-    let subString = replacedRows.split('</th>')
-    //eliminate elements starting from columnsName.length + 1 to the end of array
-    //columnsName.length + 1 is required for the additional '<tr>' present in the array
-    subString.splice(columnsName.length + 1, subString.length - columnsName.length)
-    return subString.join('</th>')
+function updateRows(rows) {
+    let jsonTemplate = JSON.parse(JSON.stringify(rows))
+    let values = Object.values(jsonTemplate)
+
+    let updatedRows = []
+    for(let i = 0; i < values.length; i++){
+        let row = ""
+        for(let j = 0; j < columnsName.length; j++){
+            let columnName = `${columnsName[j].toLowerCase()}`
+            row += `<th>
+                <input value="${values[i][columnName]}"
+                type="text"
+                required
+                name="${columnName}">
+                </th>`
+        }
+        updatedRows.push(row)
+    }
+    return updatedRows.join(' ')
 }
 
 function replaceId(rows) {
