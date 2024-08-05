@@ -11,7 +11,7 @@ const resources = new Resources();
 let fileName
 
 export default class InitialData{
-    initialData = (odsFile) => decompress(odsFile, {
+    getInitialData = (odsFile) => decompress(odsFile, {
         filter: file => path.basename(file.path) === 'content.xml'
     }).then(async files => {
         fileName = getOdsFileName(odsFile)
@@ -33,10 +33,12 @@ export default class InitialData{
         await fetch(`${config.URL}/queries/insert/${fileName}`,{
             method: 'POST'
         })
-
+    }).catch(err => {
+        throw err
+    }).finally(_=>{
         //delete file at the end of the n operations
         fs.rmSync(path.join(resources.__dirname, `/SqlQueries/${fileName}.sql`))
-    });    
+    })
 }
 
 function getOdsFileName(odsFileName){

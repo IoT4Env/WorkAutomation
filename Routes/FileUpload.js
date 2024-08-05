@@ -23,10 +23,14 @@ fileUpload.use(helmet())
 //Migrate ods file uploaded by the user
 fileUpload.post('/ods', storage.single('uploaded-ods'), (req,res) =>{
     const odsPath = req.file.path
-    initialData.initialData(odsPath)
-    fs.rmSync(odsPath);
-    res.status(201).send('Sql query is ready to be executed' + returnBack)
-    return
+    initialData.getInitialData(odsPath).then(_ =>{
+        res.status(201).send('Sql query is ready to be executed' + returnBack)
+        return
+    }).catch(err => {
+        return res.status(400).redirect(`/handleError/invalidCells/${err}`)
+    }).finally(_ =>{
+        fs.rmSync(odsPath);
+    })
 })
 
 export default fileUpload;
