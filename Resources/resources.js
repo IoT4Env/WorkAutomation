@@ -42,17 +42,6 @@ export default class Resources {
     
     ReturnBackButton = `<button><a href="/">BACK</a></button>`
 
-    //Names as params, so must be Pascal case
-    //transform into a function to get columns name based on table name
-
-
-    ColumnsName = [
-        "Name",
-        "Surname",
-        "Address",
-        "Mail"
-    ]
-
     SqlQueries = {
         GetByField: (field, table) =>{
             return `SELECT ROWID, ${field} FROM ${table}`
