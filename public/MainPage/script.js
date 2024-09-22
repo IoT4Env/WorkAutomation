@@ -1,6 +1,8 @@
 const field = document.querySelector('#field'),
     filter = document.querySelector('#filter'),
+    getsLink = document.querySelector('#gets-link'),
     getLink = document.querySelector('#get-link'),
+    postLink = document.querySelector('#insert-form'),
     inputs = document.getElementsByTagName('input'),
     fileInputs = document.querySelectorAll('input[type=file]'),
     tableSelection = document.querySelector('#table-selection'),
@@ -20,9 +22,26 @@ window.onload = async () => {
     })
 }
 
+//Get the /CRUD/ resource path (the one that must NOT change)
+let getsString = getsLink.getAttribute('href')
+
+//Based on placeholder values, there is no need to rememnber what values where inserted by some other code
+//just replace the placeholders with new values and you are good to go
 let linkString = getLink.getAttribute('href')
 
-getLink.setAttribute('href', linkString.replace('Field', field.value).replace('Filter', filter.value))
+let postLinkString = postLink.getAttribute('action')
+
+//Call once to define initial values fo the resource API
+updateLinks()
+
+function updateLinks(){
+    //Initial values for the links
+    getsLink.setAttribute('href', `${getsString}${tableSelected}`)
+
+    getLink.setAttribute('href', linkString.replace('Field', field.value).replace('Filter', filter.value))
+    
+    postLink.setAttribute('action', `${postLinkString}${tableSelected}`)
+}
 
 
 //#region Configure main page based on table selected
@@ -52,8 +71,8 @@ tableSelection.addEventListener('change', async _ => {
             await updateFileds()
         })
     })
-
-
+    //Update links on table change
+    updateLinks()
 })
 //#endregion
 
