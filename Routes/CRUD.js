@@ -17,8 +17,8 @@ const returnBackButton = resources.ReturnBackButton;
 
 const modelsDb = DbInfo.ModelsDb;
 
-let currentTable = DbInfo.CurrentTable
 const tables = await Promise.resolve(DbInfo.getTables())
+let currentTable = tables[0].name
 let columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
 
 const crud = express()
@@ -27,23 +27,22 @@ crud.use(express.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
-async function configureGetApis(){
-    tables.forEach(async table =>{
-        let columns = await Promise.resolve(DbInfo.getColumnNames(table.name))
-        columns.forEach(filter => {
-            crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
-        })
-    })
-}
+// async function configureGetApis(){
+//     tables.forEach(async table =>{
+//         let columns = await Promise.resolve(DbInfo.getColumnNames(table.name))
+//         columns.forEach(filter => {
+//             crud.get(`/:table/${filter}=:Field`, (req, res) => filters(req, res, filter))
+//         })
+//     })
+// }
 
-await configureGetApis()
+// await configureGetApis()
 
 async function tableChange(){
-    if(DbInfo.CurrentTable === currentTable){
-        return;
+    if(DbInfo.CurrentTable !== currentTable){
+        currentTable = DbInfo.CurrentTable
+        columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
     }
-    currentTable = DbInfo.CurrentTable
-    columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
 }
 
 
@@ -52,8 +51,18 @@ crud.all('/*', async (req,res,next) =>{
     next()
 })
 
-//Gets all elements from the Models table
-crud.get('/', (req, res) => {
+
+//Handles get all and get by column name
+crud.get(`/:table`, (req, res) => {
+    currentTable = req.params.table
+    
+    //check if there are some query parameters
+    if(Object.keys(req.query).length !== 0)
+    {
+        handleQuery(req,res, req.query)
+        return;
+    }
+    
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, * FROM ${currentTable}`, (err, rows) => {
             if (err) {
@@ -64,34 +73,33 @@ crud.get('/', (req, res) => {
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
             }
-            crud.use(express.static('public/GETS'));
+            //crud.use(express.static('public/GETS'));
             let replacedRows = replaceRows(rows)
             let deleteId = replaceId(rows)
             let columns = replaceColumns()
             res.status(200).send(get.replace('{{%Content%}}', replacedRows)
-                                    .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId))
+                                    .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId)
+                                    .replace('{{%TABLE%}}', currentTable))
             return
         })
     })
 })
 
-//Build get api foreach column
-// columnsName.forEach(filter => {
-//     crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
-// })
+function handleQuery(req, res, query) {
+    currentTable = req.params.table
+    let field = Object.values(query)[0]
+    let filter = Object.keys(query)[0]
 
-function filters(req, res, filter) {
-    let field = req.params.Field
 
     if (field.includes('_')) {
         res.status(400).send(`${filter} not specified ${returnBackButton}`)
         return
     }
 
-    modelsDb.serialize(_ => {
-        modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ${filter} = ${field}`,(err, rows) => {
+    modelsDb.serialize(_ => {        
+        modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ${filter} = '${field}'`,(err, rows) => {
             if (err) {
-                console.log(err);
+                console.log(err.message);
                 const errorObj = {
                     Code: 1,
                     Body: err.message
@@ -105,13 +113,14 @@ function filters(req, res, filter) {
             let columns = replaceColumns()
             res.status(200).send(get.replace('{{%Content%}}', replacedRows)
                                     .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId))
-            })
             return
+        })
     })
 }
 
-//Insert data in the Models table
-crud.post('/', (req, res) => {
+//Insert data in the specified table
+crud.post('/:table', (req, res) => {
+    currentTable = req.params.table
     crud.use(express.static('./public/POST'))
     const {Columns, Values} = jsonQueryInfo(req)
 
@@ -133,9 +142,11 @@ crud.post('/', (req, res) => {
 })
 
 //Get element to update by id and displays the content on a different html page
-crud.get('/Id=:id', (req, res) => {
-    crud.use(express.static('./public/UPDATE'))
-    let id = req.params.id
+crud.get('/update/:table', (req, res) => {
+    currentTable = req.params.table
+    crud.use(express.static('../public'))
+    let id = Object.values(req.query)[0]
+    
 
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ROWID = ${id}`, (err, rows) => {
@@ -152,7 +163,8 @@ crud.get('/Id=:id', (req, res) => {
             res.status(200).send(returnBackButton + htmlTemplates.Update
                 .replace('{{%Content%}}', updatedRows)
                 .replace('{{%COLUMNS%}}', columns)
-                .replace(/{{%Id%}}/g, id))
+                .replace(/{{%Id%}}/g, id)
+                .replace('{{%TABLE%}}', currentTable))
             
             return
         })
@@ -160,8 +172,9 @@ crud.get('/Id=:id', (req, res) => {
 })
 
 //The updated data replaces the old data
-crud.post('/update/Id=:id', (req, res) => {
-    const id = req.params.id
+crud.post('/update/:table', (req, res) => {
+    currentTable = req.params.table
+    let id = Object.values(req.query)[0]
     const {Columns, Values} = jsonQueryInfo(req)
 
     let keyValue = []
@@ -189,15 +202,16 @@ crud.post('/update/Id=:id', (req, res) => {
                         'Content-Type': 'application/json'
                     }
                 };
-                await fetch(`${localhost}/CRUD/update/Id=${id}`, options)
+                await fetch(`${localhost}/CRUD/update/${currentTable}?Id=${id}`, options)
                     .then(res.status(200).send(returnBackButton + resources.HtmlTemplates.UpdateRes))
             })
     })
 })
 
 //Delete specific element by id
-crud.get('/delete/Id=:id', (req, res) => {
-    let id = req.params.id
+crud.get('/delete/:table', (req, res) => {
+    currentTable = req.params.table
+    let id = Object.values(req.query)[0]
 
     modelsDb.serialize(_ => {
         modelsDb.run(`DELETE FROM ${currentTable} WHERE ROWID = $Id`, {
@@ -224,7 +238,8 @@ crud.get('/delete/Id=:id', (req, res) => {
 })
 
 //delete multiple elements
-crud.get('/deleteMany/:ids', (req, res) => {
+crud.get('/deleteMany/:table/:ids', (req, res) => {
+    currentTable = req.params.table
     const rawIds = req.params.ids;
     const ids = JSON.parse(rawIds)
 
@@ -248,7 +263,7 @@ crud.get('/deleteMany/:ids', (req, res) => {
                         'Content-Type': 'application/json'
                     }
                 }
-                return fetch(`${localhost}/CRUD/deleteMany/${ids}`, options)
+                return fetch(`${localhost}/CRUD/deleteMany/${currentTable}/${ids}`, options)
                     .then(_ => {
                         res.status(200).send(htmlTemplates.Delete + returnBackButton)
                         return
@@ -310,7 +325,11 @@ function replaceRows(rows) {
             let columnName = `${columnsName[j].toLowerCase()}`
             row += `<th>${values[i][columnName]}</th>`
         }
-        replacedRows.push(htmlTemplates.Content.replace('{{%ROW%}}', row).replace(/{{%Id%}}/g, values[i]['rowid']))
+        replacedRows.push(htmlTemplates.Content
+            .replace('{{%ROW%}}', row)
+            .replace(/{{%Id%}}/g, values[i]['rowid'])
+            .replace('{{%TABLE%}}', currentTable))
+        
     }
 
     return replacedRows.join(' ');
@@ -347,6 +366,7 @@ function replaceId(rows) {
     let replacedRows = jsonTemplate.map(json => {
         let outputRow = htmlTemplates.ConfirmDeletion
             .replace(/{{%Id%}}/g, json.rowid)
+            .replace(/{{%TABLE%}}/g, currentTable)
 
         return outputRow
     })

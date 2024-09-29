@@ -17,7 +17,7 @@
         </select>
     </div>
     <div class="CRUD">
-        <a href="/CRUD/">
+        <a id="gets-link" href="/CRUD">
             <button id="GETS">GETS</button>
         </a>
 
@@ -30,11 +30,11 @@
         <select id="field">
             {{%FIELD%}}
         </select>
-        <a id="get-link" href="/CRUD/Filter=Field">
+        <a id="get-link" href="/CRUD">
             <button id="GET">GET</button>
         </a>
 
-        <form id="insert-form" autocomplete="off" action="/CRUD/" method="POST">
+        <form id="insert-form" autocomplete="off" action="/CRUD" method="POST">
             <div id="insert-fields">
                 {{%FORM_FIELDS%}}
             </div>
