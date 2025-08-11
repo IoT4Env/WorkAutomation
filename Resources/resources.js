@@ -20,10 +20,6 @@ export default class Resources {
         Delete: readFileSync(join(this.__dirname, '../public/DELETE/delete.html'), 'utf-8')
     }
 
-    HtmlPaths = {
-        Index: join(this.__dirname, '../public/MainPage')
-    }
-
     ReturnBackButton = `<button><a href="/">BACK</a></button>`
 
     //Names as params, so must be capitalized
