@@ -15,13 +15,16 @@
             <button id="GETS">GETS</button>
         </a>
 
-        <label>Filter by name
-            <select id="names">
-                <option>OPTIONS</option>
-                {{%Names%}}
+        <label for="filter">Filter by:
+            <select id="filter">
+                {{%FILTER%}}
             </select>
         </label>
-        <a id="GET-Link" href="/CRUD/Name=_Name_">
+
+        <select id="field">
+            {{%FIELD%}}
+        </select>
+        <a id="get-link" href="/CRUD/Filter=Field">
             <button id="GET">GET</button>
         </a>
 
@@ -43,22 +46,22 @@
     </div>
     <div class="migrate-ods">
         <form action="/FileUpload/ods" method="post" enctype="multipart/form-data">
-            <label for="choose-ods"></label>
-            <input id="choose-ods" name="uploaded-ods" type="file" required>
+            <label for="choose-ods">Select ODS</label>
+            <input id="choose-ods" name="uploaded-ods" type="file" hidden required>
 
             <button type="submit">SUBMIT ODS</button>
         </form>
     </div>
     <div class="upload-sql-query">
         <form action="/FileUpload/sql" method="post" enctype="multipart/form-data">
-            <label for="choose-sql-query"></label>
-            <input id="choose-sql-query" name="uploaded-sql-query" type="file" required>
+            <label for="choose-sql-query">Select SQL</label>
+            <input id="choose-sql-query" name="uploaded-sql-query" type="file" hidden required>
 
             <button type="submit">SUBMIT SQL</button>
         </form>
     </div>
 </body>
 
-<script src="action.js"></script>
+<script defer src="action.js"></script>
 
 </html>

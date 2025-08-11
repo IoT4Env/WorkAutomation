@@ -5,6 +5,7 @@ import crud from './Routes/CRUD.js';
 import image from './Views/imageView.js';
 import handleError from './Views/handleError.js';
 import fileUpload from './Routes/FileUpload.js';
+import fetchResources from './Views/fetchResources.js'
 
 import Resources from './Resources/resources.js'
 import Config from './Resources/config.js'
@@ -12,13 +13,12 @@ import Config from './Resources/config.js'
 const resources = new Resources();
 const config = new Config();
 
-const ddl = resources.HtmlTemplates.DDL;
-
 const SERVER_PORT = config.SERVER_PORT
 const SERVER_HOSTNAME = config.SERVER_HOSTNAME
 const localhost = config.URL;
 
 const modelsDb = resources.ModelsDb;
+let currentFilter = resources.ColumnsName[0].toLowerCase()
 
 const app = express();
 app.use(helmet())
@@ -28,6 +28,7 @@ app.use('/CRUD', crud)
 app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
+app.use('/fetchResources', fetchResources)
 
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
@@ -35,28 +36,34 @@ app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
 })
 
 //Gets main page
-app.get('', (req, res) => {
-    modelsDb
-    .serialize(_ => {
-        modelsDb
-        .all('SELECT ROWID, name FROM Models', (err, rows) => {
+app.get('', async (req, res) => {
+    modelsDb.serialize(_ => {
+        modelsDb.all(`SELECT ROWID, ${currentFilter} FROM Models`, (err, rows) => {
             if (err) {
                 const errorObj = {
                     "Code": 1,
                     "Body": err
                 }
-                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
+                res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return;
             }
-            let jsonTemplate = JSON.parse(JSON.stringify(rows))
-            let populatedNames = []
-            jsonTemplate.map(json => {
-                if (!populatedNames.includes(`<option>${json.name}</option>`))
-                    populatedNames.push(`<option>${json.name}</option>`)
+
+            let filters = []
+            resources.ColumnsName.forEach(column =>{
+                filters.push(`<option>${column}</option>`)
             })
-            app.use(express.static('./public/MainPage'))
-            res.status(200)
-                .send(ddl.replace('{{%Names%}}', populatedNames.join(',')))
+
+            let fields = []
+            //might be duplicates
+            rows.map(json => {
+                if (!fields.includes(`<option>${json[currentFilter]}</option>`))
+                    fields.push(`<option>${json[currentFilter]}</option>`)
+            })
+            app.use(express.static('public/MainPage'));
+            return res.status(200).send(
+                resources.HtmlTemplates.Index
+                    .replace('{{%FILTER%}}', filters)
+                    .replace('{{%FIELD%}}', fields))
         })
     })
 })

@@ -12,13 +12,14 @@ export default class Resources {
 
     //DDL = Drop Down List
     HtmlTemplates = {
-        DDL: readFileSync(join(this.__dirname, '../public/MainPage/Index.html'), 'utf-8'),
+        Index: readFileSync(join(this.__dirname, '../public/MainPage/index.html'), 'utf-8'),
         Content: readFileSync(join(this.__dirname, '../public/ContentBody.html'), 'utf-8'),
         Get: readFileSync(join(this.__dirname, '../public/GETS/gets.html'), 'utf-8'),
         Post: readFileSync(join(this.__dirname, '../public/POST/post.html'), 'utf-8'),
         Update: readFileSync(join(this.__dirname, '../public/UPDATE/update.html'), 'utf-8'),
         Delete: readFileSync(join(this.__dirname, '../public/DELETE/delete.html'), 'utf-8')
     }
+
     ReturnBackButton = `<button><a href="/">BACK</a></button>`
 
     //Names as params, so must be capitalized
@@ -28,4 +29,10 @@ export default class Resources {
         "Address",
         "Mail"
     ]
+
+    SqlQueries = {
+        GetByField: (field) =>{
+            return `SELECT ROWID, ${field} FROM Models`
+        }
+    }
 }
