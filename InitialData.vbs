@@ -43,7 +43,7 @@ set oDestinationFile = fso.OpenTextFile(".\destinationFile.sql",2)
 ' json = json & "]"
 ' oDestinationFile.Write json
 
-query = "INSERT INTO Modelli(Id, Nome, Cognome, Indirizzo, Posta) VALUES " & vbCr & "("
+query = "INSERT INTO Models(id, name, surname, address, mail) VALUES " & vbCr & "("
 
 For i = 1 to 6 Step 1
 	values = ""

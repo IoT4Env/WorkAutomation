@@ -16,18 +16,16 @@ let returnBackButton = `<button><a href="/">BACK</a></button>`;
 
 const fileUpload = express();
 
-const modelliDB = new SQLite3.Database(join(__dirname.replace('/Routes', '/') + 'Database/modelli.db'))
+const modelsDb = new SQLite3.Database(join(__dirname.replace('/Routes', '/') + 'Databases/models.db'))
 
 fileUpload.post('/sql', storage.single('uploaded-file'), (req, res) => {
     const filePath = req.file.path
     const query = fs.readFileSync(filePath, 'utf-8')
         .trim()
 
-    console.log(query);
-
     fs.rmSync(filePath);
-    modelliDB.serialize(_ => {
-        modelliDB.run(query, (err) => {
+    modelsDb.serialize(_ => {
+        modelsDb.run(query, (err) => {
             if (err) {
                 const errorObj = {
                     "Code": 3,
