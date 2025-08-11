@@ -4,9 +4,38 @@ const deletes = document.querySelectorAll('.delete-many'),
 
 
 const linkString = deletesLink.getAttribute('href');
+let checkedArray = []
+
+//#region Delete many logic
+//deleteSelected button disabled by default
+deleteSelected.disabled = true
+
+deletes.forEach(del =>{
+    del.checked = false
+    del.addEventListener('click', _=>{
+        checkDelete(del)
+    })
+})
+
+function checkDelete(del){
+    let delId = del.getAttribute('id')
+    if(checkedArray.includes(delId))
+        checkedArray.splice(checkedArray.indexOf(delId), 1)
+    else{
+        checkedArray.push(delId)
+    }
+
+    if(checkedArray.length > 0){
+        deleteSelected.disabled = false
+    }else{
+        deleteSelected.disabled = true
+    }
+}
+
+//#endregion
 
 deleteSelected.addEventListener('click', _=>{
-    let checkedArray = []
+    
     deletes.forEach(del =>{
         if(del.checked)
             checkedArray.push(del.getAttribute('id'))
