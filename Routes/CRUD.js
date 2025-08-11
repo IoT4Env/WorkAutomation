@@ -3,9 +3,11 @@ import helmet from 'helmet';
 import bodyParser from 'body-parser';
 
 import Resources from '../Resources/resources.js'
+import DbInfo from '../Resources/dbQueries.js'
 import Config from '../Resources/config.js'
 
 const resources = new Resources();
+const dbInfo = new DbInfo()
 const config = new Config();
 
 const localhost = config.URL;
@@ -16,7 +18,7 @@ const returnBackButton = resources.ReturnBackButton;
 
 const columnsName = resources.ColumnsName;
 
-const modelsDb = resources.ModelsDb;
+const modelsDb = dbInfo.ModelsDb;
 
 const crud = express()
 crud.use(helmet())

@@ -3,11 +3,13 @@ import path from 'path'
 import fs from 'fs'
 
 import Resources from '../Resources/resources.js'
+import DbInfo from '../Resources/dbQueries.js'
 
 
 const resources = new Resources()
+const dbInfo = new DbInfo()
 
-const modelsDb = resources.ModelsDb;
+const modelsDb = dbInfo.ModelsDb;
 
 const queries = express()
 

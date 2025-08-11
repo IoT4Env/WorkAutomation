@@ -2,14 +2,16 @@ const field = document.querySelector('#field'),
     filter = document.querySelector('#filter'),
     getLink = document.querySelector('#get-link'),
     inputs = document.getElementsByTagName('input'),
-    fileInputs = document.querySelectorAll('input[type=file]')
+    fileInputs = document.querySelectorAll('input[type=file]'),
+    tableSelection = document.querySelector('#table-selection')
 
 let columns = []
 let fieldsArr;
+let tableSelected = tableSelection.value//first value inside the ddl
 
 //gather data from back end when needed
 window.onload = async () => {
-    await fetch(`${window.location.href}fetchResources/columns`).then(res => {
+    await fetch(`${window.location.href}fetchResources/columns/${tableSelected}`).then(res => {
         res.text().then(text => {
             columns = JSON.parse(text);
             filter.value = columns[0]
@@ -20,6 +22,13 @@ window.onload = async () => {
 let linkString = getLink.getAttribute('href')
 
 getLink.setAttribute('href', linkString.replace('Field', field.value).replace('Filter', filter.value))
+
+
+//#region Configure main page based on table selected
+tableSelection.addEventListener('change', _=>{
+    tableSelected = tableSelection.value
+})
+//#endregion
 
 //#region Chars restriction
 for (let i = 0; i < inputs.length - 1; i++) {

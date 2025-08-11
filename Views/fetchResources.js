@@ -2,17 +2,20 @@ import express from 'express'
 import helmet from 'helmet';
 
 import Resources from '../Resources/resources.js'
+import DbInfo from '../Resources/dbQueries.js'
+
 
 const resources = new Resources();
+const dbInfo = new DbInfo()
 
-const modelsDb = resources.ModelsDb
+const modelsDb = dbInfo.ModelsDb
 let lastFilter
 
 const frontBack = express()
 frontBack.use(helmet())
 
-frontBack.get('/columns', (req, res) => {
-    res.status(200).send(resources.ColumnsName);
+frontBack.get('/columns/:tableName', async (req, res) => {
+    res.status(200).send(await Promise.resolve(dbInfo.getColumnNames(req.params.tableName)));
     return
 })
 
