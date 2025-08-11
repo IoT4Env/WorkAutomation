@@ -1,6 +1,8 @@
 const field = document.querySelector('#field'),
     filter = document.querySelector('#filter'),
+    getsLink = document.querySelector('#gets-link'),
     getLink = document.querySelector('#get-link'),
+    postLink = document.querySelector('#insert-form'),
     inputs = document.getElementsByTagName('input'),
     fileInputs = document.querySelectorAll('input[type=file]'),
     tableSelection = document.querySelector('#table-selection'),
@@ -20,9 +22,26 @@ window.onload = async () => {
     })
 }
 
+//Get the /CRUD/ resource path (the one that must NOT change)
+let getsString = getsLink.getAttribute('href')
+
+//Based on placeholder values, there is no need to rememnber what values where inserted by some other code
+//just replace the placeholders with new values and you are good to go
 let linkString = getLink.getAttribute('href')
 
-getLink.setAttribute('href', linkString.replace('Field', field.value).replace('Filter', filter.value))
+let postLinkString = postLink.getAttribute('action')
+
+//Call once to define initial values fo the resource API
+updateLinks()
+
+function updateLinks() {
+    //Initial values for the links
+    getsLink.setAttribute('href', `${getsString}/${tableSelected}`)
+
+    getLink.setAttribute('href', `${linkString}/${tableSelected}?${filter.value}=${field.value}`)
+
+    postLink.setAttribute('action', `${postLinkString}/${tableSelected}`)
+}
 
 
 //#region Configure main page based on table selected
@@ -30,19 +49,19 @@ tableSelection.addEventListener('change', async _ => {
     tableSelected = tableSelection.value
 
     await fetch(`${window.location.href}fetchResources/update/${tableSelected}`)
-    
+
     await fetch(`${window.location.href}fetchResources/columns/${tableSelected}`).then(res => {
         res.text().then(async text => {
             columns = JSON.parse(text);
 
             let updataedFilters = []
-            columns.forEach(column =>{
+            columns.forEach(column => {
                 updataedFilters.push(`<option>${column}</option>`)
             })
             filter.innerHTML = updataedFilters
 
             let updateFormFields = []
-            columns.forEach(column =>{
+            columns.forEach(column => {
                 updateFormFields.push(`<label>${column}
                         <input type="text" name="${column.toLowerCase()}" required>
                         </label>`)
@@ -52,8 +71,8 @@ tableSelection.addEventListener('change', async _ => {
             await updateFileds()
         })
     })
-
-
+    //Update links on table change
+    updateLinks()
 })
 //#endregion
 
@@ -68,9 +87,7 @@ for (let i = 0; i < inputs.length - 1; i++) {
 //#region dynamic DDL
 
 field.addEventListener('change', _ => {
-    getLink.setAttribute('href', linkString
-        .replace('Filter', filter.value)
-        .replace('Field', field.value))
+    getLink.setAttribute('href', `${linkString}/${tableSelected}?${filter.value}=${field.value}`)
 })
 
 filter.addEventListener('change', async _ => {
@@ -92,9 +109,9 @@ for (let i = 0; i < fileInputs.length; i++) {
 }
 //#endregion
 
-async function updateFileds(){
+async function updateFileds() {
     await fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}/tables/${tableSelected}`)
-        .then(res => res.text().then(fields =>{
+        .then(res => res.text().then(fields => {
             fieldsArr = JSON.parse(fields);
 
             let uniqueFields = []
@@ -104,8 +121,6 @@ async function updateFileds(){
             })
 
             field.innerHTML = uniqueFields.join(',')
-            getLink.setAttribute('href', linkString
-                .replace('Filter', filter.value)
-                .replace('Field', field.value))
+            getLink.setAttribute('href', `${linkString}/${tableSelected}?${filter.value}=${field.value}`)
         }))
 }
