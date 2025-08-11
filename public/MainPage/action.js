@@ -1,16 +1,19 @@
-const nomiDDL = document.getElementById('Nomi');
-const getLink = document.getElementById('GET-Link');
-const inputs = document.getElementsByTagName('input');
+const nomiDDL = document.getElementById('Nomi'),
+    getLink = document.getElementById('GET-Link'),
+    inputs = document.getElementsByTagName('input')
 
-let linkString = getLink.getAttribute('href')
-let previusName
-const regex = /[^a-z0-9]/gi
 
+//#region Chars restriction
 for (let i = 0; i < inputs.length - 1; i++) {
     inputs[i].addEventListener('keyup', _ => {
-        inputs[i].value = inputs[i].value.replace(regex, "")
+        inputs[i].value = inputs[i].value.replace(/[^a-z0-9]/gi, "")
     })
 }
+//#endregion
+
+//#region dynamic DDL
+let previusName,
+    linkString = getLink.getAttribute('href')
 
 nomiDDL.addEventListener('change', _ => {
     if (nomiDDL.value !== 'OPTIONS') {
@@ -24,3 +27,4 @@ nomiDDL.addEventListener('change', _ => {
     }
     previusName = nomiDDL.value
 })
+//#endregion
