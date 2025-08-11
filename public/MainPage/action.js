@@ -1,16 +1,20 @@
 const fields = document.querySelector('#fields'),
-    filter = document.querySelector('#filter'),
+    filters = document.querySelector('#filters'),
     getLink = document.querySelector('#get-link'),
     inputs = document.getElementsByTagName('input')
 
-let columns, filedsArr;
+let columns = []
+let filedsArr;
 
 //gather data from back end when needed
-fetch(`${window.location.href}fetchResources/columns`).then(res => {
-    res.text().then(text => {
-        columns = JSON.parse(text);
+window.onload = async()=>{
+    await fetch(`${window.location.href}fetchResources/columns`).then(res => {
+        res.text().then(text => {
+            columns = JSON.parse(text);
+            filters.value = columns[0]
+        })
     })
-})
+}
 
 let linkString = getLink.getAttribute('href')
 
@@ -30,8 +34,8 @@ fields.addEventListener('change', _ => {
     getLink.setAttribute('href', linkString.replace('_Name_', fields.value))
 })
 
-filter.addEventListener('change', _ => {
-    fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}`)
+filters.addEventListener('change', _ => {
+    fetch(`${window.location.href}fetchResources/filters/${filters.value.toString().toLowerCase()}`)
         .then(res => {
             res.text().then(filedsRes => {
                 filedsArr = JSON.parse(filedsRes);

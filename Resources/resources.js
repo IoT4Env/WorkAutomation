@@ -29,4 +29,10 @@ export default class Resources {
         "Address",
         "Mail"
     ]
+
+    SqlQueries = {
+        GetByField: (field) =>{
+            return `SELECT ROWID, ${field} FROM Models`
+        }
+    }
 }
