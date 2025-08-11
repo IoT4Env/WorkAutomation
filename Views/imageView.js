@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 
 image.get('/delete.png', (req, res) => {
     res.sendFile(__dirname + '/Images/recycleBin.png')
+    return
 })
 
 export default image;
