@@ -9,7 +9,7 @@ export default class DbInfo {
 
     ModelsDb = new SQLite3.Database(join(this.__dirname, '../Databases/models.db'));
 
-    PreviusTable
+    static CurrentTable
 
     getTables = async _ => {
         return new Promise(resolve => {
@@ -41,7 +41,8 @@ export default class DbInfo {
                     }
                     let columnNames = []
 
-                    this.PreviusTable = tableName
+                    
+
                     columns.forEach(column => {
                         columnNames.push(column.name[0].toUpperCase() + column.name.slice(1))
                     })
@@ -53,5 +54,11 @@ export default class DbInfo {
         })
     }
 
-    //ColumnNames = this.getColumnNames(this.PreviusTable)
+    static updateTable = tableName =>{
+        DbInfo.CurrentTable = tableName
+    }
+
+    static getCurrentTable = _ =>{
+        return DbInfo.CurrentTable
+    }
 }

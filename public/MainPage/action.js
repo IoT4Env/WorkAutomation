@@ -29,6 +29,8 @@ getLink.setAttribute('href', linkString.replace('Field', field.value).replace('F
 tableSelection.addEventListener('change', async _ => {
     tableSelected = tableSelection.value
 
+    await fetch(`${window.location.href}fetchResources/update/${tableSelected}`)
+    
     await fetch(`${window.location.href}fetchResources/columns/${tableSelected}`).then(res => {
         res.text().then(text => {
             columns = JSON.parse(text);
@@ -41,21 +43,7 @@ tableSelection.addEventListener('change', async _ => {
         })
     })
 
-    await fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}/tables/${tableSelected}`)
-        .then(res => res.text().then(fields =>{
-            fieldsArr = JSON.parse(fields);
-
-            let uniqueFields = []
-            fieldsArr.map(field => {
-                if (!uniqueFields.includes(field))
-                    uniqueFields.push(field)
-            })
-
-            field.innerHTML = uniqueFields.join(',')
-            getLink.setAttribute('href', linkString
-                .replace('Filter', filter.value)
-                .replace('Field', field.value))
-        }))
+    await updateFileds()
 })
 //#endregion
 
@@ -76,23 +64,7 @@ field.addEventListener('change', _ => {
 })
 
 filter.addEventListener('change', async _ => {
-    await fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}/tables/${tableSelected}`)
-        .then(res => {
-            res.text().then(fields => {
-                fieldsArr = JSON.parse(fields);
-
-                let uniqueFields = []
-                fieldsArr.map(field => {
-                    if (!uniqueFields.includes(field))
-                        uniqueFields.push(field)
-                })
-
-                field.innerHTML = uniqueFields.join(',')
-                getLink.setAttribute('href', linkString
-                    .replace('Filter', filter.value)
-                    .replace('Field', field.value))
-            })
-        })
+    await updateFileds()
 })
 //#endregion
 
@@ -109,3 +81,21 @@ for (let i = 0; i < fileInputs.length; i++) {
     })
 }
 //#endregion
+
+async function updateFileds(){
+    await fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}/tables/${tableSelected}`)
+        .then(res => res.text().then(fields =>{
+            fieldsArr = JSON.parse(fields);
+
+            let uniqueFields = []
+            fieldsArr.map(field => {
+                if (!uniqueFields.includes(field))
+                    uniqueFields.push(field)
+            })
+
+            field.innerHTML = uniqueFields.join(',')
+            getLink.setAttribute('href', linkString
+                .replace('Filter', filter.value)
+                .replace('Field', field.value))
+        }))
+}
