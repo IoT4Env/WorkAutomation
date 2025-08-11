@@ -60,10 +60,11 @@ app.get('', async (req, res) => {
                     uniqueFields.push(`<option>${json[currentFilter]}</option>`)
             })
             app.use(express.static('public/MainPage'));
+            app.use(express.static('public/HamburgerMenu'));
             return res.status(200).send(
                 resources.HtmlTemplates.Index
                     .replace('{{%FILTER%}}', filters)
-                    .replace('{{%FIELD%}}', uniqueFields))
+                    .replace('{{%FIELD%}}', uniqueFields) + resources.HtmlTemplates.HamburgerMenu)
         })
     })
 })
