@@ -3,13 +3,12 @@ const fields = document.querySelector('#fields'),
     getLink = document.querySelector('#get-link'),
     inputs = document.getElementsByTagName('input')
 
-let columns;
+let columns, filtersArr;
 
 //gather data from back end when needed
 fetch(`${window.location.href}fetchResources/columns`).then(res => {
     res.text().then(text => {
         columns = JSON.parse(text);
-
     })
 })
 
@@ -39,8 +38,12 @@ fields.addEventListener('change', _ => {
 })
 
 filter.addEventListener('change', _ => {
-    //on change, an api is called
-    //the api does the query by field chosen on the front end
-    //the result should update the values inside html of main page
+    fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}`)
+        .then(res => {
+            res.text().then(filters => {
+                filtersArr = JSON.parse(filters);
+                fields.innerHTML = filtersArr.join(',')
+            })
+        })
 })
 //#endregion
