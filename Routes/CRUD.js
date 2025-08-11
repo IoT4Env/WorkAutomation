@@ -17,8 +17,8 @@ const returnBackButton = resources.ReturnBackButton;
 
 const modelsDb = DbInfo.ModelsDb;
 
-let currentTable = DbInfo.CurrentTable
 const tables = await Promise.resolve(DbInfo.getTables())
+let currentTable = tables[0].name
 let columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
 
 const crud = express()
@@ -39,11 +39,10 @@ async function configureGetApis(){
 await configureGetApis()
 
 async function tableChange(){
-    if(DbInfo.CurrentTable === currentTable){
-        return;
+    if(DbInfo.CurrentTable !== currentTable){
+        currentTable = DbInfo.CurrentTable
+        columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
     }
-    currentTable = DbInfo.CurrentTable
-    columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
 }
 
 
@@ -52,8 +51,10 @@ crud.all('/*', async (req,res,next) =>{
     next()
 })
 
+
 //Gets all elements from the Models table
-crud.get('/', (req, res) => {
+crud.get(`/:table`, (req, res) => {
+    currentTable = req.params.table
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, * FROM ${currentTable}`, (err, rows) => {
             if (err) {
@@ -111,7 +112,8 @@ function filters(req, res, filter) {
 }
 
 //Insert data in the Models table
-crud.post('/', (req, res) => {
+crud.post('/:table', (req, res) => {
+    currentTable = req.params.table
     crud.use(express.static('./public/POST'))
     const {Columns, Values} = jsonQueryInfo(req)
 
@@ -133,7 +135,8 @@ crud.post('/', (req, res) => {
 })
 
 //Get element to update by id and displays the content on a different html page
-crud.get('/Id=:id', (req, res) => {
+crud.get('/:table/Id=:id', (req, res) => {
+    currentTable = req.params.table
     crud.use(express.static('./public/UPDATE'))
     let id = req.params.id
 
