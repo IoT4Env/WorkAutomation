@@ -1,0 +1,17 @@
+a{
+    text-decoration: none;
+}
+
+button{
+    position: relative;
+    width: 100%;
+}
+
+#insert-fields{
+    position: relative;
+    width: fit-content;
+}
+
+#insert-form{
+    display: flex;
+}
