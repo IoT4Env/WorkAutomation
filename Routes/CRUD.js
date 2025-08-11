@@ -16,7 +16,7 @@ let modifiedRoute = __dirname.replace('\Routes', '/')
 let htmlContentTemplate = fs.readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
 let htmlGetResponseTemplate = fs.readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
 let htmlPostResponseTemplate = fs.readFileSync(modifiedRoute + 'public/POST/POST.html', 'utf-8')
-let htmlUPDATEResponseTemplate = fs.readFileSync(modifiedRoute + 'public/UPDATE/UPDATE.html', 'utf-8')
+let htmlUpdateResponseTemplate = fs.readFileSync(modifiedRoute + 'public/UPDATE/UPDATE.html', 'utf-8')
 let htmlDeleteResponseTemplate = fs.readFileSync(modifiedRoute + 'public/DELETE/DELETE.html', 'utf-8')
 
 let returnBackButton = `<button><a href="/">BACK</a></button>`;
@@ -103,7 +103,8 @@ crud.get('/update/Id=:id', (req, res) => {
                 res.sendStatus(500).send('Error on getting the row')
             }
             replacedRow = ReplaceRowsFunction(row, true)
-            res.status(200).send(htmlUPDATEResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRow))
+            console.log(replacedRow);
+            res.status(200).send(htmlUpdateResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRow))
         })
     })
     return
@@ -140,7 +141,9 @@ function ReplaceRowsFunction(rows, single) {
         return outputRow
     })
     if (single) {
-        replacedRows.pop()
+        let subString = replacedRows[0].split('</th>')
+        subString.splice(subString.length - 2, 1)
+        return subString.join('</th>')
     }
     return replacedRows.join('');
 }
