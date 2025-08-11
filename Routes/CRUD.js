@@ -36,7 +36,7 @@ crud.get('/', (req, res) => {
                 console.log(err)
                 res.status(500).send('Errore ottenimento dati')
             }
-            replacedRows = ReplaceRowsFunction(rows, false)
+            replacedRows = ReplaceRowsFunction(rows)
             res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
         })
     })
@@ -62,7 +62,7 @@ crud.get('/Nome=:Nome', (req, res) => {
                     res.send('Errore ottenimento dati')
                 }
 
-                replacedRows = ReplaceRowsFunction(rows, false)
+                replacedRows = ReplaceRowsFunction(rows)
                 res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
             })
     })
@@ -92,7 +92,7 @@ crud.post('/', (req, res) => {
     })
 })
 
-crud.get('/update/Id=:id', (req, res) => {
+crud.get('/Id=:id', (req, res) => {
     let id = req.params.id
 
     modelliDB.serialize(_ => {
@@ -102,12 +102,20 @@ crud.get('/update/Id=:id', (req, res) => {
             if (err) {
                 res.sendStatus(500).send('Error on getting the row')
             }
-            replacedRow = ReplaceRowsFunction(row, true)
-            console.log(replacedRow);
-            res.status(200).send(htmlUpdateResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRow))
+            replacedRow = ReplaceRowsFunction(row)
+            let getElementsRow = replacedRow.split('\n')
+            let content = [];
+            for (let i = 1; i < getElementsRow.length - 1; i++) {
+                content.push(`<th>
+                    <input value="${getElementsRow[i]
+                        .trim()
+                        .substring(4, getElementsRow[i].trim().length - 5)}"
+                    type="text">
+                    </th>`)
+            }
+            res.status(200).send(htmlUpdateResponseTemplate.replace('{{%Content%}}', content.join('') + returnBackButton))
         })
     })
-    return
 })
 
 crud.get('/delete/Id=:id', (req, res) => {
@@ -128,7 +136,7 @@ crud.get('/delete/Id=:id', (req, res) => {
     })
 })
 
-function ReplaceRowsFunction(rows, single) {
+function ReplaceRowsFunction(rows) {
     let jsonTemplate = JSON.parse(JSON.stringify(rows))
     let replacedRows = jsonTemplate.map(json => {
         let outputRow = htmlContentTemplate
@@ -140,7 +148,7 @@ function ReplaceRowsFunction(rows, single) {
 
         return outputRow
     })
-    if (single) {
+    if (rows.length === 1) {
         let subString = replacedRows[0].split('</th>')
         subString.splice(subString.length - 2, 1)
         return subString.join('</th>')
