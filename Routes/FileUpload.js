@@ -1,23 +1,20 @@
 import express from 'express'
-import SQLite3 from 'sqlite3';
-import path, { join } from 'path';
-import { fileURLToPath } from 'url';
 import fs from 'fs'
-
 import storage from '../Resources/storage.js'
 
+import Resources from '../Resources/resources.js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-let htmlPostResponseTemplate = fs.readFileSync(join(__dirname.replace('Routes', '')) + '/public/POST/POST.html', 'utf-8')
+const resources = new Resources();
 
-let returnBackButton = `<button><a href="/">BACK</a></button>`;
+const htmlTemplates = resources.HtmlTemplates;
+const returnBack = resources.ReturnBackButton
+
+const modelsDb = resources.ModelsDb;
 
 const fileUpload = express();
 
-const modelsDb = new SQLite3.Database(join(__dirname.replace('/Routes', '/') + 'Databases/models.db'))
-
+//Upload query sql from proper file
 fileUpload.post('/sql', storage.single('uploaded-file'), (req, res) => {
     const filePath = req.file.path
     const query = fs.readFileSync(filePath, 'utf-8')
@@ -34,7 +31,7 @@ fileUpload.post('/sql', storage.single('uploaded-file'), (req, res) => {
                 res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                 return;
             }
-            res.status(201).send(htmlPostResponseTemplate + returnBackButton)
+            res.status(201).send(htmlTemplates.Post + returnBack)
             return;
         })
     })

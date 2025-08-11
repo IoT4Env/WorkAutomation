@@ -1,38 +1,22 @@
-import dotEnv from 'dotenv'
 import express from 'express';
-import SQLite3 from 'sqlite3';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
-import path, { join } from 'path';
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
 
-dotEnv.config();
-const SERVER_HOSTNAME = process.env.SERVER_HOSTNAME;
-const SERVER_PORT = process.env.SERVER_PORT
-const localhost = `http://${SERVER_HOSTNAME}:${SERVER_PORT}`
+import Resources from '../Resources/resources.js'
+import Config from '../Resources/config.js'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const resources = new Resources();
+const config = new Config();
 
-let modifiedRoute = __dirname.replace('\Routes', '')
+const localhost = config.URL;
 
-//Insert theese resources on a config file
-let htmlContentTemplate = readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
-let htmlGetResponseTemplate = readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
-let htmlPostResponseTemplate = readFileSync(modifiedRoute + 'public/POST/POST.html', 'utf-8')
-let htmlUpdateResponseTemplate = readFileSync(modifiedRoute + 'public/UPDATE/UPDATE.html', 'utf-8')
-let htmlDeleteResponseTemplate = readFileSync(modifiedRoute + 'public/DELETE/DELETE.html', 'utf-8')
+const htmlTemplates = resources.HtmlTemplates;
+const get = htmlTemplates.Get;
+const returnBackButton = resources.ReturnBackButton;
 
-let returnBackButton = `<button><a href="/">BACK</a></button>`;
+const columnsName = resources.ColumnsName;
 
-//Names as params, so must be capitalized
-let columnsName = [
-    "Name",
-    "Surname",
-    "Address",
-    "Mail"
-]
+const modelsDb = resources.ModelsDb;
 
 const crud = express()
 crud.use(helmet())
@@ -40,7 +24,6 @@ crud.use(express.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
-const modelsDb = new SQLite3.Database(join(modifiedRoute + './Databases/models.db'));
 
 //Gets all elements from the Models table
 crud.get('/', (req, res) => {
@@ -55,7 +38,7 @@ crud.get('/', (req, res) => {
                 return
             }
             let replacedRows = replaceRows(rows)
-            res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
+            res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows))
         })
     })
 })
@@ -85,7 +68,7 @@ crud.get('/Name=:Name', (req, res) => {
                 }
 
                 let replacedRows = replaceRows(rows)
-                res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
+                res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows))
             })
     })
 })
@@ -111,7 +94,7 @@ crud.post('/', (req, res) => {
                     res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                     return
                 }
-                res.status(201).send(htmlPostResponseTemplate + returnBackButton)
+                res.status(201).send(htmlTemplates.Post + returnBackButton)
             })
     })
 })
@@ -147,7 +130,7 @@ crud.get('/Id=:id', (req, res) => {
                     name="${columnsName[i - 1]}">
                     </th>`)
             }
-            res.status(200).send(returnBackButton + htmlUpdateResponseTemplate.
+            res.status(200).send(returnBackButton + htmlTemplates.Update.
                 replace('{{%Content%}}', content.join(''))
                 .replace(/{{%Id%}}/g, id))
         })
@@ -221,7 +204,7 @@ crud.get('/delete/Id=:id', (req, res) => {
                 }
             }
             fetch(`${localhost}/CRUD/delete/Id=${id}`, options)
-                .then(res.status(200).send(htmlDeleteResponseTemplate + returnBackButton))
+                .then(res.status(200).send(htmlTemplates.Delete + returnBackButton))
         })
     })
 })
@@ -230,7 +213,7 @@ crud.get('/delete/Id=:id', (req, res) => {
 function replaceRows(rows) {
     let jsonTemplate = JSON.parse(JSON.stringify(rows))
     let replacedRows = jsonTemplate.map(json => {
-        let outputRow = htmlContentTemplate
+        let outputRow = htmlTemplates.Content
             .replace('{{%Name%}}', json.name)
             .replace('{{%Surname%}}', json.surname)
             .replace('{{%Address%}}', json.address)
