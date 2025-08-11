@@ -232,9 +232,10 @@ function ReplaceRowsFunction(rows) {
         return outputRow
     })
 
+    //console.log(replacedRows);
     if (rows.length === 1) {
         let subString = replacedRows[0].split('</th>')
-        subString.splice(subString.length - 2, 1)
+        subString.splice(subString.length - 1, 1)
         return subString.join('</th>')
     }
     return replacedRows.join('');
