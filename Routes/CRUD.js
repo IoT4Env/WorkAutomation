@@ -27,16 +27,16 @@ crud.use(express.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
-async function configureGetApis(){
-    tables.forEach(async table =>{
-        let columns = await Promise.resolve(DbInfo.getColumnNames(table.name))
-        columns.forEach(filter => {
-            crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
-        })
-    })
-}
+// async function configureGetApis(){
+//     tables.forEach(async table =>{
+//         let columns = await Promise.resolve(DbInfo.getColumnNames(table.name))
+//         columns.forEach(filter => {
+//             crud.get(`/:table/${filter}=:Field`, (req, res) => filters(req, res, filter))
+//         })
+//     })
+// }
 
-await configureGetApis()
+// await configureGetApis()
 
 async function tableChange(){
     if(DbInfo.CurrentTable !== currentTable){
@@ -52,9 +52,17 @@ crud.all('/*', async (req,res,next) =>{
 })
 
 
-//Gets all elements from the Models table
+//Handles get all and get by column name
 crud.get(`/:table`, (req, res) => {
     currentTable = req.params.table
+    
+    //check if there are some query parameters
+    if(Object.keys(req.query).length !== 0)
+    {
+        handleQuery(req,res, req.query)
+        return;
+    }
+    
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, * FROM ${currentTable}`, (err, rows) => {
             if (err) {
@@ -76,23 +84,21 @@ crud.get(`/:table`, (req, res) => {
     })
 })
 
-//Build get api foreach column
-// columnsName.forEach(filter => {
-//     crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
-// })
+function handleQuery(req, res, query) {
+    currentTable = req.params.table
+    let field = Object.values(query)[0]
+    let filter = Object.keys(query)[0]
 
-function filters(req, res, filter) {
-    let field = req.params.Field
 
     if (field.includes('_')) {
         res.status(400).send(`${filter} not specified ${returnBackButton}`)
         return
     }
 
-    modelsDb.serialize(_ => {
-        modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ${filter} = ${field}`,(err, rows) => {
+    modelsDb.serialize(_ => {        
+        modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ${filter} = '${field}'`,(err, rows) => {
             if (err) {
-                console.log(err);
+                console.log(err.message);
                 const errorObj = {
                     Code: 1,
                     Body: err.message
@@ -106,12 +112,12 @@ function filters(req, res, filter) {
             let columns = replaceColumns()
             res.status(200).send(get.replace('{{%Content%}}', replacedRows)
                                     .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId))
-            })
             return
+        })
     })
 }
 
-//Insert data in the Models table
+//Insert data in the specified table
 crud.post('/:table', (req, res) => {
     currentTable = req.params.table
     crud.use(express.static('./public/POST'))
