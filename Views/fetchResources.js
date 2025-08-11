@@ -7,7 +7,7 @@ const resources = new Resources();
 
 const frontBack = express()
 
-frontBack.get('', (req,res) =>{
+frontBack.get('/columns', (req,res) =>{
     res.status(200).send(resources.ColumnsName);
     return
 })

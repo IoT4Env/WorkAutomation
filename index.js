@@ -5,7 +5,7 @@ import crud from './Routes/CRUD.js';
 import image from './Views/imageView.js';
 import handleError from './Views/handleError.js';
 import fileUpload from './Routes/FileUpload.js';
-import fetchData from './Views/fetchResources.js'
+import fetchResources from './Views/fetchResources.js'
 
 import Resources from './Resources/resources.js'
 import Config from './Resources/config.js'
@@ -29,7 +29,7 @@ app.use('/CRUD', crud)
 app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
-app.use('/fetchData', fetchData)
+app.use('/fetchResources', fetchResources)
 
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
@@ -38,10 +38,8 @@ app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
 
 //Gets main page
 app.get('', (req, res) => {
-    modelsDb
-    .serialize(_ => {
-        modelsDb
-        .all('SELECT ROWID, name FROM Models', (err, rows) => {
+    modelsDb.serialize(_ => {
+        modelsDb.all('SELECT ROWID, name FROM Models', (err, rows) => {
             if (err) {
                 const errorObj = {
                     "Code": 1,
@@ -57,13 +55,13 @@ app.get('', (req, res) => {
                     names.push(`<option>${json.name}</option>`)
             })
             let filters = []
-            resources.ColumnsName.forEach(column =>{
+            resources.ColumnsName.forEach(column => {
                 filters.push(`<option>${column}</option>`)
             })
             app.use(express.static('./public/MainPage'))
             res.status(200)
-                .send(ddl.replace('{{%Names%}}', names.join(','))
-            .replace('{{%FILTERS%}}', filters))
+                .send(ddl.replace('{{%FIELDS%}}', names.join(','))
+                    .replace('{{%FILTERS%}}', filters))
         })
     })
 })
