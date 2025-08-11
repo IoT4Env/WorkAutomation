@@ -33,7 +33,7 @@ tableSelection.addEventListener('change', async _ => {
     await fetch(`${window.location.href}fetchResources/update/${tableSelected}`)
     
     await fetch(`${window.location.href}fetchResources/columns/${tableSelected}`).then(res => {
-        res.text().then(text => {
+        res.text().then(async text => {
             columns = JSON.parse(text);
 
             let updataedFilters = []
@@ -48,12 +48,13 @@ tableSelection.addEventListener('change', async _ => {
                         <input type="text" name="${column.toLowerCase()}" required>
                         </label>`)
             })
-            console.log(updateFormFields);
             insertFields.innerHTML = updateFormFields.join('')
+
+            await updateFileds()
         })
     })
 
-    await updateFileds()
+
 })
 //#endregion
 

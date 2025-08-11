@@ -12,7 +12,6 @@
 <body>
     <div class="table-name">
         <select id="table-selection">
-            <!-- make api to query all tables inside the database -->
             {{%TABLES%}}
         </select>
     </div>
@@ -34,7 +33,6 @@
             <button id="GET">GET</button>
         </a>
 
-        <!-- give this form an id and build the form based on how many columns the table has -->
         <form id="insert-form" autocomplete="off" action="/CRUD/" method="POST">
             <div id="insert-fields">
                 {{%FORM_FIELDS%}}
