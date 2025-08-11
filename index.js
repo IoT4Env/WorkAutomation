@@ -23,7 +23,8 @@ let htmlDropDownPopulation = fs.readFileSync(__dirname + '/public/MainPage/Index
 app.use('/CRUD', crud)
 app.use('/Images', image)
 app.use('/handleError', handleError)
-let ModelliDB = new SQLite3.Database(path.join(__dirname + './Database/modelli.db'))
+
+let ModelliDB = new SQLite3.Database(path.join(__dirname + '/Database/modelli.db'))
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
     console.log(`Server avviato su ${url}`)
