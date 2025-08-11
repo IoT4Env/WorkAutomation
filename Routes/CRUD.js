@@ -39,7 +39,8 @@ crud.get('/', (req, res) => {
             }
             crud.use(express.static('public/GETS'));
             let replacedRows = replaceRows(rows)
-            res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows))
+            let deleteId = replaceId(rows)
+            res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows + deleteId))
             return
         })
     })
@@ -75,7 +76,9 @@ function filters(req, res, filter) {
                 }
 
                 let replacedRows = replaceRows(rows)
-                res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows))
+                let deleteId = replaceId(rows)
+                res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows + deleteId))
+                return
             })
     })
 }
@@ -127,7 +130,8 @@ crud.get('/Id=:id', (req, res) => {
             let getElementsRow = replacedRow.split('\n')
             let content = [];
 
-            for (let i = 1; i < columnsName.length + 1; i++) {
+            //i = 3 is the offset from witch to start getting the elements interested on the update, the columns parameters
+            for (let i = 3; i < columnsName.length + 3; i++) {
                 content.push(`<th>
                     <input value="${getElementsRow[i]
                         .trim()
@@ -222,7 +226,7 @@ crud.get('/deleteMany/:ids', (req, res) => {
     const ids = JSON.parse(rawIds)
 
     let rowidsSelect = []
-    ids.forEach(id =>rowidsSelect.push(`ROWID = ${id}`))
+    ids.forEach(id => rowidsSelect.push(`ROWID = ${id}`))
 
     modelsDb.serialize(_ => {
         modelsDb.run(`DELETE FROM Models WHERE ${rowidsSelect.join(' OR ')}`,
@@ -242,7 +246,7 @@ crud.get('/deleteMany/:ids', (req, res) => {
                     }
                 }
                 return fetch(`${localhost}/CRUD/deleteMany/${ids}`, options)
-                    .then(_=>{
+                    .then(_ => {
                         res.status(200).send(htmlTemplates.Delete + returnBackButton)
                         return
                     })
@@ -281,6 +285,17 @@ function rowsRefinment(replacedRows) {
     //columnsName.length + 1 is required for the additional '<tr>' present in the array
     subString.splice(columnsName.length + 1, subString.length - columnsName.length)
     return subString.join('</th>')
+}
+
+function replaceId(rows) {
+    let jsonTemplate = JSON.parse(JSON.stringify(rows))
+    let replacedRows = jsonTemplate.map(json => {
+        let outputRow = htmlTemplates.ConfirmDeletion
+            .replace(/{{%Id%}}/g, json.rowid)
+
+        return outputRow
+    })
+    return replacedRows.join('');
 }
 
 export default crud;

@@ -1,26 +1,8 @@
 const deletes = document.querySelectorAll('.delete-many'),
     deletesLink = document.querySelector('#delete-many-link'),
     deleteSelected = document.querySelector('#delete-selected'),
-    deleteImgs = document.querySelectorAll('.delete-image'),
-    dialogBoxes = document.querySelectorAll('.confirm-delete-box'),
     cancelButton = document.querySelectorAll('.cancel')
 
-
-//#region Confirm deletion
-
-for (let i = 0; i < deleteImgs.length; i++) {
-    deleteImgs[i].addEventListener('click', _ => {
-        dialogBoxes[i].style.visibility = 'visible'
-        dialogBoxes[i].children.item(0).style.visibility = 'visible'
-        //item(0) because it refers to the div containing the confirm content
-    })
-    cancelButton[i].addEventListener('click', _ => {
-        dialogBoxes[i].style.visibility = 'hidden'
-        dialogBoxes[i].children.item(0).style.visibility = 'hidden'
-        //item(0) because it refers to the div containing the confirm content
-    })
-}
-//#endregion
 
 const linkString = deletesLink.getAttribute('href');
 let checkedArray = []
