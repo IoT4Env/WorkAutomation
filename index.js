@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 import crud from './Routes/CRUD.js';
 import image from './Views/imageView.js';
 import handleError from './Views/handleError.js';
+import fileUpload from './Routes/FileUpload.js';
 
 dotEnv.config()
 
@@ -27,6 +28,7 @@ app.use(express.json());
 let htmlDropDownPopulation = readFileSync(__dirname + '/public/MainPage/Index.html', 'utf-8')
 
 app.use('/CRUD', crud)
+app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
 
