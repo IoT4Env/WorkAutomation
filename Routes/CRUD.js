@@ -76,6 +76,7 @@ crud.get('/Nome=:Nome', (req, res) => {
 })
 
 crud.get('/Id=:id', (req, res) => {
+    crud.use(express.static('./public/UPDATE'))
     let id = req.params.id
 
     modelliDB.serialize(_ => {
@@ -95,6 +96,7 @@ crud.get('/Id=:id', (req, res) => {
                         .trim()
                         .substring(4, getElementsRow[i].trim().length - 5)}"
                     type="text"
+                    required
                     name="${columnsName[i - 1]}">
                     </th>`)
             }
