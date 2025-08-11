@@ -62,8 +62,8 @@ app.get('', async (req, res) => {
             app.use(express.static('public/MainPage'));
             return res.status(200).send(
                 resources.HtmlTemplates.Index
-                    .replace('{{%FILTERS%}}', filters)
-                    .replace('{{%FIELDS%}}', fields))
+                    .replace('{{%FILTER%}}', filters)
+                    .replace('{{%FIELD%}}', fields))
         })
     })
 })

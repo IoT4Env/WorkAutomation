@@ -43,22 +43,22 @@ crud.get('/', (req, res) => {
     })
 })
 
-//Get elements with the desired name
-crud.get('/Name=:Name', (req, res) => {
-    let name = req.params.Name
+function filters(req,res, filter){
+    let field = req.params.Field
 
-    if (name.includes('_')) {
-        res.status(400).send(`Name not specified ${returnBackButton}`)
+    if (field.includes('_')) {
+        res.status(400).send(`${filter} not specified ${returnBackButton}`)
         return
     }
 
     modelsDb.serialize(_ => {
-        modelsDb.all('SELECT ROWID, * FROM Models WHERE name = $Name',
+        modelsDb.all(`SELECT ROWID, * FROM Models WHERE ${filter} = $Field`,
             {
-                $Name: name
+                $Field: field
             }
             , (err, rows) => {
                 if (err) {
+                    console.log(err);
                     const errorObj = {
                         Code: 1,
                         Body: err
@@ -71,6 +71,11 @@ crud.get('/Name=:Name', (req, res) => {
                 res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows))
             })
     })
+}
+
+//Build get api foreach column
+resources.ColumnsName.forEach(filter =>{
+    crud.get(`/${filter}=:Field`, (req,res) => filters(req,res, filter))
 })
 
 //Insert data in the Models table
