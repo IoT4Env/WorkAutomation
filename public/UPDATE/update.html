@@ -1,12 +1,9 @@
 <body>
-    <form action="/CRUD/update/Id={{%Id%}}" method="get">
+    <form action="/CRUD/update/{{%TABLE%}}?Id={{%Id%}}" method="post">
         <table>
             <thead>
                 <tr class="main-row">
-                    <th class="column-name">Name</th>
-                    <th class="column-name">Surname</th>
-                    <th class="column-name">Address</th>
-                    <th class="column-name">Mail</th>
+                    {{%COLUMNS%}}
                 </tr>
             </thead>
             <tbody>
@@ -18,4 +15,4 @@
 
 </body>
 
-<script src="update.js"></script>
+<script defer src="../UPDATE/update.js"></script>

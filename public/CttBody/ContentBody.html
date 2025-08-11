@@ -1,0 +1,18 @@
+<link rel="stylesheet" href="CttBody/ContentBody.css" type="text/css">
+
+<tr>
+    {{%ROW%}}
+    <th class="modifications">
+        <a href="/CRUD/update/{{%TABLE%}}?Id={{%Id%}}">
+            <button id="update-row">UPDATE</button>
+        </a>
+
+        <a id="delete-image-link">
+            <img class="delete-image" src="../Images/delete.png">
+        </a>
+
+        <input id="{{%Id%}}" class="delete-many" type="checkbox" />
+    </th>
+</tr>
+
+<script defer src="CttBody/ContentBody.js"></script>

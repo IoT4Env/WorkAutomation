@@ -8,6 +8,7 @@ Moreover, when selecting data based on specific requirements (alfabetic order, d
 
 This solution provides better visualization of the data over all while garanting large data template storage.
 All the information will be saved on-prem (no internet needed), so it will be accessible only from the fisical machine at all time.
+Idealy, this project should run on a web server installed on a Raspberry Pi, but for development porpose this project is consedered as running locally.
 
 ## How is this even possible?
 

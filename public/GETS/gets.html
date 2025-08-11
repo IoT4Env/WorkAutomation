@@ -1,17 +1,14 @@
 <link rel="stylesheet" href="GETS/gets.css" type="text/css">
 
 <body>
-    <a id="delete-many-link" href="/CRUD/deleteMany/{{%IDS%}}">
+    <a id="delete-many-link" href="/CRUD/deleteMany/{{%TABLE%}}">
         <button id="delete-selected">Delete selected</button>
     </a>
     
     <table>
         <thead>
             <tr class="main-row">
-                <th class="column-name">Name</th>
-                <th class="column-name">Surname</th>
-                <th class="column-name">Address</th>
-                <th class="column-name">Mail</th>
+                {{%COLUMNS%}}
                 <th class="column-name">Modifications</th>
             </tr>
         </thead>
@@ -21,4 +18,4 @@
     </table>
 </body>
 
-<script defere src="./gets.js"></script>
+<script defere src="GETS/gets.js"></script>

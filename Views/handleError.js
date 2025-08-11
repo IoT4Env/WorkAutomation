@@ -1,6 +1,14 @@
 import express from 'express';
+import helmet from 'helmet';
+
+import Resources from '../Resources/resources.js';
+
+const resources = new Resources()
+
+const returnBack = resources.ReturnBackButton
 
 const handleError = express()
+handleError.use(helmet())
 
 handleError.get('/:err', (req, res) => {
     const {Code, Body} = JSON.parse(req.params.err)
@@ -23,6 +31,10 @@ handleError.get('/:err', (req, res) => {
             break;
     }
     return;
+})
+
+handleError.get('/invalidCells/:errorMsg', (req,res) =>{
+    return res.status(400).send(`${req.params.errorMsg} ${returnBack}`)
 })
 
 export default handleError
