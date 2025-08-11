@@ -17,29 +17,6 @@ const modelsDb = resources.ModelsDb;
 const fileUpload = express();
 fileUpload.use(helmet())
 
-//Upload query sql from proper file
-//we should handle the sql execution automatically on ods file upload
-fileUpload.post('/sql', storage.single('uploaded-sql-query'), (req, res) => {
-    const sqlPath = req.file.path
-    const query = fs.readFileSync(sqlPath, 'utf-8')
-        .trim()
-
-    fs.rmSync(sqlPath);
-    modelsDb.serialize(_ => {
-        modelsDb.run(query, (err) => {
-            if (err) {
-                const errorObj = {
-                    "Code": 3,
-                    "Body": err
-                }
-                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
-                return;
-            }
-            res.status(201).send(htmlTemplates.Post + returnBack)
-            return;
-        })
-    })
-})
 
 //Migrate ods file uploaded by the user
 fileUpload.post('/ods', storage.single('uploaded-ods'), (req,res) =>{
