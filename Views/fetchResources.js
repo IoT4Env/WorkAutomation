@@ -2,24 +2,32 @@ import express from 'express'
 import helmet from 'helmet';
 
 import Resources from '../Resources/resources.js'
+import DbInfo from '../Resources/dbQueries.js'
+
 
 const resources = new Resources();
 
-const modelsDb = resources.ModelsDb
+const modelsDb = DbInfo.ModelsDb
 let lastFilter
 
 const frontBack = express()
 frontBack.use(helmet())
 
-frontBack.get('/columns', (req, res) => {
-    res.status(200).send(resources.ColumnsName);
+frontBack.get('/update/:tableName', (req,res) =>{
+    res.status(200).send(DbInfo.updateTable(req.params.tableName))
     return
 })
 
-frontBack.get('/filters/:filter', (req, res) => {
+frontBack.get('/columns/:tableName', async (req, res) => {
+    res.status(200).send(await Promise.resolve(DbInfo.getColumnNames(req.params.tableName)));
+    return
+})
+
+frontBack.get('/filters/:filter/tables/:table', (req, res) => {
     const selectedFilter = req.params.filter
+    const table = req.params.table
     modelsDb.serialize(_ => {
-        modelsDb.all(resources.SqlQueries.GetByField(selectedFilter), (err, rows) => {
+        modelsDb.all(resources.SqlQueries.GetByField(selectedFilter, table), (err, rows) => {
             if (err) {
                 console.log(err);
                 const errorObj = {
