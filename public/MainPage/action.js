@@ -1,7 +1,8 @@
 const field = document.querySelector('#field'),
     filter = document.querySelector('#filter'),
     getLink = document.querySelector('#get-link'),
-    inputs = document.getElementsByTagName('input')
+    inputs = document.getElementsByTagName('input'),
+    fileInputs = document.querySelectorAll('input[type=file]')
 
 let columns = []
 let filedsArr;

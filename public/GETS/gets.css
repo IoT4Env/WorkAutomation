@@ -5,8 +5,18 @@ table{
     background-color: red;
 }
 
-.main-row{
-    background-color: greenyellow;
+thead{
+    position: sticky;
+    top: 0px;
+}
+
+img{
+    width: 25px;
+    height: 25px;
+}
+
+th{
+    background-color: aquamarine;
 }
 
 .column-name{
@@ -15,15 +25,12 @@ table{
     background-color: yellow;
 }
 
-img{
-    width: 25px;
-    height: 25px;
+.modifications > a{
+    margin: 0 5%;
 }
 
-tr{
-    background-color: blue;
-}
-
-th{
-    background-color: aquamarine;
+#delete-selected{
+    position: absolute;
+    right: 5px;
+    float: right;
 }
