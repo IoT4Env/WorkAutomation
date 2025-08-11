@@ -16,6 +16,7 @@ let modifiedRoute = __dirname.replace('\Routes', '/')
 let htmlContentTemplate = fs.readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
 let htmlGetResponseTemplate = fs.readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
 let htmlPostResponseTemplate = fs.readFileSync(modifiedRoute + 'public/POST/POST.html', 'utf-8')
+let htmlUPDATEResponseTemplate = fs.readFileSync(modifiedRoute + 'public/UPDATE/UPDATE.html', 'utf-8')
 let htmlDeleteResponseTemplate = fs.readFileSync(modifiedRoute + 'public/DELETE/DELETE.html', 'utf-8')
 
 let returnBackButton = `<button><a href="/">BACK</a></button>`;
@@ -24,6 +25,7 @@ const crud = express()
 crud.use(helmet())
 crud.use(bodyParser.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
+crud.use(express.static('./public/'))
 
 const modelliDB = new SQLite3.Database(join(modifiedRoute + './Database/modelli.db'))
 
@@ -34,8 +36,7 @@ crud.get('/', (req, res) => {
                 console.log(err)
                 res.status(500).send('Errore ottenimento dati')
             }
-            crud.use(express.static('./public/GETS'))
-            replacedRows = ReplaceRowsFunction(rows)
+            replacedRows = ReplaceRowsFunction(rows, false)
             res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
         })
     })
@@ -60,8 +61,8 @@ crud.get('/Nome=:Nome', (req, res) => {
                     res.statusCode = 500
                     res.send('Errore ottenimento dati')
                 }
-                crud.use(express.static('./public/GETS'))
-                replacedRows = ReplaceRowsFunction(rows)
+
+                replacedRows = ReplaceRowsFunction(rows, false)
                 res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
             })
     })
@@ -91,9 +92,20 @@ crud.post('/', (req, res) => {
     })
 })
 
-crud.get('/update/', (req, res) => {
-    console.log('update');
-    res.send('apposto')
+crud.get('/update/Id=:id', (req, res) => {
+    let id = req.params.id
+
+    modelliDB.serialize(_ => {
+        modelliDB.all('SELECT ROWID, * FROM Modelli WHERE ROWID = $Id', {
+            $Id: id
+        }, (err, row) => {
+            if (err) {
+                res.sendStatus(500).send('Error on getting the row')
+            }
+            replacedRow = ReplaceRowsFunction(row, true)
+            res.status(200).send(htmlUPDATEResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRow))
+        })
+    })
     return
 })
 
@@ -115,7 +127,7 @@ crud.get('/delete/Id=:id', (req, res) => {
     })
 })
 
-function ReplaceRowsFunction(rows) {
+function ReplaceRowsFunction(rows, single) {
     let jsonTemplate = JSON.parse(JSON.stringify(rows))
     let replacedRows = jsonTemplate.map(json => {
         let outputRow = htmlContentTemplate
@@ -123,10 +135,13 @@ function ReplaceRowsFunction(rows) {
             .replace('{{%Cognome%}}', json.Cognome)
             .replace('{{%Indirizzo%}}', json.Indirizzo)
             .replace('{{%Posta%}}', json.Posta)
-            .replace('{{%Id%}}', json.rowid)
+            .replace(/{{%Id%}}/g, json.rowid)
 
         return outputRow
     })
+    if (single) {
+        replacedRows.pop()
+    }
     return replacedRows.join('');
 }
 
