@@ -32,7 +32,6 @@ frontBack.get('/filters/:filter', (req,res) =>{
                 filters.push(`<option>${json[selectedFilter]}</option>`)
             })
             lastFilter = selectedFilter;
-            console.trace(lastFilter);
 
             return res.status(200).send(filters)
         })

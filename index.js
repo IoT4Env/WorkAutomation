@@ -40,7 +40,6 @@ app.get('', async (req, res) => {
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, ${currentFilter} FROM Models`, (err, rows) => {
             if (err) {
-                console.log(err);
                 const errorObj = {
                     "Code": 1,
                     "Body": err
