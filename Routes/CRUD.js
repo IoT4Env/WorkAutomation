@@ -10,8 +10,9 @@ const SERVER_PORT = process.env.SERVER_PORT
 const localhost = `http://${SERVER_HOSTNAME}:${SERVER_PORT}`
 
 const fs = require('fs');
+const { log } = require('console');
 
-let modifiedRoute = __dirname.replace('\Routes', '/')
+let modifiedRoute = __dirname.replace('\Routes', '')
 
 let htmlContentTemplate = fs.readFileSync(modifiedRoute + 'public/ContentBody.html', 'utf-8')
 let htmlGetResponseTemplate = fs.readFileSync(modifiedRoute + 'public/GETS/GETS.html', 'utf-8')
@@ -34,14 +35,22 @@ crud.use(bodyParser.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
-const modelliDB = new SQLite3.Database(join(modifiedRoute + './Database/modelli.db'))
+const modelliDB = new SQLite3.Database(join(modifiedRoute + './Database/modelli.db'));
 
+//Custom SQLITE error identification:
+//CRUD_
+//INSERT SELECT UPDATE DELETE OTHER
+//0      1       2     3     4
 crud.get('/', (req, res) => {
     modelliDB.serialize(_ => {
         modelliDB.all('SELECT ROWID, * FROM Modelli', (err, rows) => {
             if (err) {
-                console.log(err)
-                res.status(500).send('Errore ottenimento dati')
+                const errorObj = {
+                    Code: 1,
+                    Body: err
+                }
+                res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
+                return
             }
             replacedRows = ReplaceRowsFunction(rows)
             res.status(200).send(htmlGetResponseTemplate.replace('{{%Content%}}', returnBackButton + replacedRows))
@@ -64,9 +73,12 @@ crud.get('/Nome=:Nome', (req, res) => {
             }
             , (err, rows) => {
                 if (err) {
-                    console.log(err)
-                    res.statusCode = 500
-                    res.send('Errore ottenimento dati')
+                    const errorObj = {
+                        Code: 1,
+                        Body: err
+                    }
+                    res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
+                    return
                 }
 
                 replacedRows = ReplaceRowsFunction(rows)
@@ -84,7 +96,12 @@ crud.get('/Id=:id', (req, res) => {
             $Id: id
         }, (err, row) => {
             if (err) {
-                res.sendStatus(500).send('Error on getting the row')
+                const errorObj = {
+                    Code: 1,
+                    Body: err
+                }
+                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
+                return
             }
             replacedRow = ReplaceRowsFunction(row)
             let getElementsRow = replacedRow.split('\n')
@@ -115,16 +132,17 @@ crud.post('/', (req, res) => {
         $Indirizzo: req.body.indirizzo || null,
         $Posta: req.body.posta || null,
     };
-    if (Object.values(jsonObject).includes(null)) {
-        res.status(500).send('<p>Non tutti i campi compilati</p><br>' + returnBackButton)
-        return
-    }
 
     modelliDB.serialize(_ => {
         modelliDB.run('INSERT INTO Modelli(Nome, Cognome, Indirizzo, Posta) VALUES ($Nome, $Cognome, $Indirizzo, $Posta)',
             jsonObject, (err) => {
                 if (err) {
-                    res.status(500).send('Errore inserimento dati')
+                    const errorObj = {
+                        Code: 0,
+                        Body: err
+                    }
+                    res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
+                    return
                 }
                 res.status(201).send(htmlPostResponseTemplate + returnBackButton)
             })
@@ -139,9 +157,6 @@ and then delete the old value, thus preserving some of the security
 crud.get('/update/Id=:id', (req, res) => {
     const fullUrl = req.url
     const urlParams = fullUrl.split('?')[1].split('&')
-    //TODO
-    //Avoid the user insert chars like ?:&<>\/=
-    // console.log(urlParams);
     let id = req.params.id
     let jsonObject = {
         $Id: id,
@@ -158,10 +173,12 @@ crud.get('/update/Id=:id', (req, res) => {
         Posta = $Posta
         WHERE ROWID = $Id`,
             jsonObject, async (err) => {
-                //TODO
-                //function that handles error in the same way
                 if (err) {
-                    console.error(err)
+                    const errorObj = {
+                        Code: 2,
+                        Body: err
+                    }
+                    res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                     return
                 }
                 let options = {
@@ -183,7 +200,12 @@ crud.get('/delete/Id=:id', (req, res) => {
             $Id: id
         }, (err) => {
             if (err) {
-                res.status(500).send('Errore eliminazione dato')
+                const errorObj = {
+                    Code: 3,
+                    Body: err
+                }
+                res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
+                return;
             }
             let options = {
                 method: "DELETE",
@@ -209,9 +231,11 @@ function ReplaceRowsFunction(rows) {
 
         return outputRow
     })
+
+    //console.log(replacedRows);
     if (rows.length === 1) {
         let subString = replacedRows[0].split('</th>')
-        subString.splice(subString.length - 2, 1)
+        subString.splice(subString.length - 1, 1)
         return subString.join('</th>')
     }
     return replacedRows.join('');
