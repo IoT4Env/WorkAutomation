@@ -3,3 +3,6 @@ node_modules
 Databases/
 TestHTTP
 LICENCE
+
+#log folder
+DefenceLog/
