@@ -41,6 +41,14 @@
             <input type="submit" value="INSERT" />
         </form>
     </div>
+    <div class="upload-file">
+        <form action="/FileUpload/sql" method="post" enctype="multipart/form-data">
+            <label for="choose-file"></label>
+            <input id="choose-file" name="uploaded-file" type="file">
+
+            <button type="submit">SUBMIT</button>
+        </form>
+    </div>
 </body>
 
 <script src="action.js"></script>
