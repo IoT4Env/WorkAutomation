@@ -46,7 +46,7 @@ let configuration
 //add delete link on image if settings are configured to do so
 (async () => {
     configuration = await getMenuConfig();
-})().finally(_ => {//on completed fetch
+})().then(_ => {//on completed fetch
     if (!configuration.Settings) {
         for (let i = 0; i < deleteImgs.length; i++) {
             deleteImgs[i].removeEventListener('click', eventDeleteImgs)

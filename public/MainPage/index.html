@@ -10,6 +10,12 @@
 </head>
 
 <body>
+    <div class="table-name">
+        <select id="table">
+            <!-- make api to query all tables inside the database -->
+            {{%TABLES%}}
+        </select>
+    </div>
     <div class="CRUD">
         <a href="/CRUD/">
             <button id="GETS">GETS</button>
