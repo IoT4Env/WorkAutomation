@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="index.css" type="text/css" rel="stylesheet">
+    <link href="style.css" type="text/css" rel="stylesheet">
 
     <title>Work automation</title>
 </head>
@@ -34,19 +34,11 @@
             <button id="GET">GET</button>
         </a>
 
-        <form autocomplete="off" action="/CRUD/" method="POST">
-            <label>Name
-                <input type="text" name="name" required>
-            </label>
-            <label>Surname
-                <input type="text" name="surname" required>
-            </label>
-            <label>Address
-                <input type="text" name="address" required>
-            </label>
-            <label>Mail
-                <input type="text" name="mail" required>
-            </label>
+        <!-- give this form an id and build the form based on how many columns the table has -->
+        <form id="insert-form" autocomplete="off" action="/CRUD/" method="POST">
+            <div id="insert-fields">
+                {{%FORM_FIELDS%}}
+            </div>
             <input type="submit" value="INSERT" />
         </form>
     </div>
@@ -61,6 +53,6 @@
     </div>
 </body>
 
-<script defer src="action.js"></script>
+<script defer src="script.js"></script>
 
 </html>
