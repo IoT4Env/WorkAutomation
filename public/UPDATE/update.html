@@ -1,15 +1,21 @@
 <body>
-    <table>
-        <thead>
-            <tr class="RigaPrincipale">
-                <th class="NomeColonna">Nome</th>
-                <th class="NomeColonna">Cognome</th>
-                <th class="NomeColonna">Indirizzo</th>
-                <th class="NomeColonna">Posta</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{%Content%}}
-        </tbody>
-    </table>
+    <form action="/CRUD/update/Id={{%Id%}}" method="get">
+        <table>
+            <thead>
+                <tr class="RigaPrincipale">
+                    <th class="NomeColonna">Nome</th>
+                    <th class="NomeColonna">Cognome</th>
+                    <th class="NomeColonna">Indirizzo</th>
+                    <th class="NomeColonna">Posta</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{%Content%}}
+            </tbody>
+        </table>
+        <input type="submit" value="UPDATE">
+
+    </form>
+
+
 </body>
