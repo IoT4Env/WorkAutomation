@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { response } from 'express';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
 
@@ -37,13 +37,15 @@ crud.get('/', (req, res) => {
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
             }
+            crud.use(express.static('public/GETS'));
             let replacedRows = replaceRows(rows)
             res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows))
+            return
         })
     })
 })
 
-function filters(req,res, filter){
+function filters(req, res, filter) {
     let field = req.params.Field
 
     if (field.includes('_')) {
@@ -74,8 +76,8 @@ function filters(req,res, filter){
 }
 
 //Build get api foreach column
-resources.ColumnsName.forEach(filter =>{
-    crud.get(`/${filter}=:Field`, (req,res) => filters(req,res, filter))
+resources.ColumnsName.forEach(filter => {
+    crud.get(`/${filter}=:Field`, (req, res) => filters(req, res, filter))
 })
 
 //Insert data in the Models table
@@ -214,6 +216,41 @@ crud.get('/delete/Id=:id', (req, res) => {
     })
 })
 
+//delete multiple elements
+crud.get('/deleteMany/:ids', (req, res) => {
+    const rawIds = req.params.ids;
+    const ids = JSON.parse(rawIds)
+
+    console.log('test');
+    let rowidsSelect = []
+    ids.forEach(id =>rowidsSelect.push(`ROWID = ${id}`))
+
+    modelsDb.serialize(_ => {
+        modelsDb.run(`DELETE FROM Models WHERE ${rowidsSelect.join(' OR ')}`,
+            (err) => {
+                if (err) {
+                    const errorObj = {
+                        Code: 3,
+                        Body: err
+                    }
+                    res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
+                    return;
+                }
+                let options = {
+                    method: "DELETE",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+                return fetch(`${localhost}/CRUD/deleteMany/${ids}`, options)
+                    .then(_=>{
+                        res.status(200).send(htmlTemplates.Delete + returnBackButton)
+                        return
+                    })
+            })
+    })
+})
+
 /**
  * 
  * @param {Array} rows Returned rows from the sql query
@@ -239,7 +276,7 @@ function replaceRows(rows) {
  * @param {Array} replacedRows Raw replaced rows that need more work before displaying on html
  * @returns A refined version of raws
  */
-function rowsRefinment(replacedRows){
+function rowsRefinment(replacedRows) {
     let subString = replacedRows.split('</th>')
     subString.splice(subString.length - 2, 1)
     return subString.join('</th>')
