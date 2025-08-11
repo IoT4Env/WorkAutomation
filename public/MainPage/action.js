@@ -1,7 +1,15 @@
-const names = document.getElementById('names'),
-    getLink = document.getElementById('GET-Link'),
+const names = document.querySelector('#names'),
+    filter = document.querySelector('#filter'),
+    getLink = document.querySelector('#get-link'),
     inputs = document.getElementsByTagName('input')
 
+let columns;
+
+fetch(`${window.location.href}fetchData`).then(res => {
+    res.text().then(text => {
+        columns = JSON.parse(text);
+    })
+})
 
 //#region Chars restriction
 for (let i = 0; i < inputs.length - 1; i++) {
@@ -27,5 +35,12 @@ names.addEventListener('change', _ => {
     }
     console.log(names.value);
     previusName = names.value
+})
+
+
+//Per ottenere i nomi delle colonne dell'ods, dobbiamo fare una fetch ad una risorsa esposta dal server
+//E una api che ritorna l'array columns del file risorse.js
+filter.addEventListener('change', _ => {
+
 })
 //#endregion

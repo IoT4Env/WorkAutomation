@@ -5,6 +5,7 @@ import crud from './Routes/CRUD.js';
 import image from './Views/imageView.js';
 import handleError from './Views/handleError.js';
 import fileUpload from './Routes/FileUpload.js';
+import fetchData from './Views/fetchResources.js'
 
 import Resources from './Resources/resources.js'
 import Config from './Resources/config.js'
@@ -28,6 +29,7 @@ app.use('/CRUD', crud)
 app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
+app.use('/fetchData', fetchData)
 
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
@@ -49,14 +51,19 @@ app.get('', (req, res) => {
                 return;
             }
             let jsonTemplate = JSON.parse(JSON.stringify(rows))
-            let populatedNames = []
+            let names = []
             jsonTemplate.map(json => {
-                if (!populatedNames.includes(`<option>${json.name}</option>`))
-                    populatedNames.push(`<option>${json.name}</option>`)
+                if (!names.includes(`<option>${json.name}</option>`))
+                    names.push(`<option>${json.name}</option>`)
+            })
+            let filters = []
+            resources.ColumnsName.forEach(column =>{
+                filters.push(`<option>${column}</option>`)
             })
             app.use(express.static('./public/MainPage'))
             res.status(200)
-                .send(ddl.replace('{{%Names%}}', populatedNames.join(',')))
+                .send(ddl.replace('{{%Names%}}', names.join(','))
+            .replace('{{%FILTERS%}}', filters))
         })
     })
 })
