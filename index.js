@@ -5,6 +5,7 @@ import crud from './Routes/CRUD.js';
 import image from './Views/imageView.js';
 import handleError from './Views/handleError.js';
 import fileUpload from './Routes/FileUpload.js';
+import menu from './Routes/menu.js'
 import fetchResources from './Views/fetchResources.js'
 
 import Resources from './Resources/resources.js'
@@ -29,6 +30,7 @@ app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
 app.use('/fetchResources', fetchResources)
+app.use('/menu', menu)
 
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
@@ -53,17 +55,18 @@ app.get('', async (req, res) => {
                 filters.push(`<option>${column}</option>`)
             })
 
-            let fields = []
+            let uniqueFields = []
             //might be duplicates
             rows.map(json => {
-                if (!fields.includes(`<option>${json[currentFilter]}</option>`))
-                    fields.push(`<option>${json[currentFilter]}</option>`)
+                if (!uniqueFields.includes(`<option>${json[currentFilter]}</option>`))
+                    uniqueFields.push(`<option>${json[currentFilter]}</option>`)
             })
             app.use(express.static('public/MainPage'));
+            app.use(express.static('public/HamburgerMenu'));
             return res.status(200).send(
                 resources.HtmlTemplates.Index
                     .replace('{{%FILTER%}}', filters)
-                    .replace('{{%FIELD%}}', fields))
+                    .replace('{{%FIELD%}}', uniqueFields) + resources.HtmlTemplates.HamburgerMenu)
         })
     })
 })

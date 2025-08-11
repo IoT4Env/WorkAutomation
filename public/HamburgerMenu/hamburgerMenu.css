@@ -1,0 +1,50 @@
+#menu {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    height: 2em;
+    width: 2em;
+    z-index: 3;
+}
+
+#menu-button {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.decoration {
+    position: relative;
+    top: 0;
+    transform: translateX(-12%);
+    height: 3px;
+    margin: 16%;
+    width: 100%;
+    background-color: black;
+}
+
+.decoration-visibility {
+    position: absolute;
+    top: 33%;
+    left: 0;
+}
+
+.decoration-visibility:nth-child(odd) {
+    transform: rotateZ(45deg);
+}
+
+.decoration-visibility:nth-child(even) {
+    transform: rotateZ(-45deg);
+}
+
+#menu-ctt {
+    position: fixed;
+    width: 100%;
+    height: 33%;
+    bottom: 0;
+    left: 0;
+    visibility: hidden;
+    background-color: rgb(230, 230, 207);
+}
