@@ -1,4 +1,5 @@
 import express from 'express'
+import helmet from 'helmet';
 import fs from 'fs'
 
 import storage from '../Resources/storage.js'
@@ -14,6 +15,7 @@ const returnBack = resources.ReturnBackButton
 const modelsDb = resources.ModelsDb;
 
 const fileUpload = express();
+fileUpload.use(helmet())
 
 //Upload query sql from proper file
 fileUpload.post('/sql', storage.single('uploaded-sql-query'), (req, res) => {

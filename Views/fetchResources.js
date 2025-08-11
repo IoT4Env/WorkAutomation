@@ -1,4 +1,5 @@
 import express from 'express'
+import helmet from 'helmet';
 
 import Resources from '../Resources/resources.js'
 
@@ -8,6 +9,7 @@ const modelsDb = resources.ModelsDb
 let lastFilter
 
 const frontBack = express()
+frontBack.use(helmet())
 
 frontBack.get('/columns', (req,res) =>{
     res.status(200).send(resources.ColumnsName);
