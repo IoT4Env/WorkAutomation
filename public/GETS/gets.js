@@ -9,6 +9,7 @@ const deletes = document.querySelectorAll('.delete-many'),
 
 
 const linkString = deletesLink.getAttribute('href');
+// deletesLink.setAttribute('href', linkString.replace('{{%IDS%}}', []))
 let checkedArray = []
 
 //#region Delete many logic
@@ -30,11 +31,9 @@ function checkDelete(del) {
         checkedArray.push(delId)
     }
 
-    if (checkedArray.length > 0) {
-        deleteSelected.disabled = false
-    } else {
-        deleteSelected.disabled = true
-    }
+    console.log(JSON.stringify(checkedArray))
+
+    deleteSelected.disabled = checkedArray.length === 0
 }
 
 //#endregion
@@ -85,7 +84,7 @@ deleteSelected.addEventListener('click', _ => {
     })
     const checkedJson = JSON.stringify(checkedArray)
 
-    deletesLink.setAttribute('href', linkString.replace('{{%IDS%}}', checkedJson))
+    deletesLink.setAttribute('href', `${linkString}/${checkedJson}`)
 
     //operations required for url Filter=Field
     const currentWindow = window.location.href

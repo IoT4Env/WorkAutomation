@@ -73,12 +73,13 @@ crud.get(`/:table`, (req, res) => {
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
             }
-            crud.use(express.static('public/GETS'));
+            //crud.use(express.static('public/GETS'));
             let replacedRows = replaceRows(rows)
             let deleteId = replaceId(rows)
             let columns = replaceColumns()
             res.status(200).send(get.replace('{{%Content%}}', replacedRows)
-                                    .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId))
+                                    .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId)
+                                    .replace('{{%TABLE%}}', currentTable))
             return
         })
     })
@@ -141,10 +142,11 @@ crud.post('/:table', (req, res) => {
 })
 
 //Get element to update by id and displays the content on a different html page
-crud.get('/:table/Id=:id', (req, res) => {
+crud.get('/update/:table', (req, res) => {
     currentTable = req.params.table
-    crud.use(express.static('./public/UPDATE'))
-    let id = req.params.id
+    crud.use(express.static('../public'))
+    let id = Object.values(req.query)[0]
+    
 
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ROWID = ${id}`, (err, rows) => {
@@ -161,7 +163,8 @@ crud.get('/:table/Id=:id', (req, res) => {
             res.status(200).send(returnBackButton + htmlTemplates.Update
                 .replace('{{%Content%}}', updatedRows)
                 .replace('{{%COLUMNS%}}', columns)
-                .replace(/{{%Id%}}/g, id))
+                .replace(/{{%Id%}}/g, id)
+                .replace('{{%TABLE%}}', currentTable))
             
             return
         })
@@ -169,8 +172,9 @@ crud.get('/:table/Id=:id', (req, res) => {
 })
 
 //The updated data replaces the old data
-crud.post('/update/Id=:id', (req, res) => {
-    const id = req.params.id
+crud.post('/update/:table', (req, res) => {
+    currentTable = req.params.table
+    let id = Object.values(req.query)[0]
     const {Columns, Values} = jsonQueryInfo(req)
 
     let keyValue = []
@@ -198,15 +202,16 @@ crud.post('/update/Id=:id', (req, res) => {
                         'Content-Type': 'application/json'
                     }
                 };
-                await fetch(`${localhost}/CRUD/update/Id=${id}`, options)
+                await fetch(`${localhost}/CRUD/update/${currentTable}?Id=${id}`, options)
                     .then(res.status(200).send(returnBackButton + resources.HtmlTemplates.UpdateRes))
             })
     })
 })
 
 //Delete specific element by id
-crud.get('/delete/Id=:id', (req, res) => {
-    let id = req.params.id
+crud.get('/delete/:table', (req, res) => {
+    currentTable = req.params.table
+    let id = Object.values(req.query)[0]
 
     modelsDb.serialize(_ => {
         modelsDb.run(`DELETE FROM ${currentTable} WHERE ROWID = $Id`, {
@@ -233,7 +238,8 @@ crud.get('/delete/Id=:id', (req, res) => {
 })
 
 //delete multiple elements
-crud.get('/deleteMany/:ids', (req, res) => {
+crud.get('/deleteMany/:table/:ids', (req, res) => {
+    currentTable = req.params.table
     const rawIds = req.params.ids;
     const ids = JSON.parse(rawIds)
 
@@ -257,7 +263,7 @@ crud.get('/deleteMany/:ids', (req, res) => {
                         'Content-Type': 'application/json'
                     }
                 }
-                return fetch(`${localhost}/CRUD/deleteMany/${ids}`, options)
+                return fetch(`${localhost}/CRUD/deleteMany/${currentTable}/${ids}`, options)
                     .then(_ => {
                         res.status(200).send(htmlTemplates.Delete + returnBackButton)
                         return
@@ -319,7 +325,11 @@ function replaceRows(rows) {
             let columnName = `${columnsName[j].toLowerCase()}`
             row += `<th>${values[i][columnName]}</th>`
         }
-        replacedRows.push(htmlTemplates.Content.replace('{{%ROW%}}', row).replace(/{{%Id%}}/g, values[i]['rowid']))
+        replacedRows.push(htmlTemplates.Content
+            .replace('{{%ROW%}}', row)
+            .replace(/{{%Id%}}/g, values[i]['rowid'])
+            .replace('{{%TABLE%}}', currentTable))
+        
     }
 
     return replacedRows.join(' ');
@@ -356,6 +366,7 @@ function replaceId(rows) {
     let replacedRows = jsonTemplate.map(json => {
         let outputRow = htmlTemplates.ConfirmDeletion
             .replace(/{{%Id%}}/g, json.rowid)
+            .replace(/{{%TABLE%}}/g, currentTable)
 
         return outputRow
     })
