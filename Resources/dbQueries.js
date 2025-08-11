@@ -4,18 +4,19 @@ import { fileURLToPath } from 'url';
 
 
 export default class DbInfo {
-    __filename = fileURLToPath(import.meta.url);
-    __dirname = path.dirname(this.__filename);
+    static __filename = fileURLToPath(import.meta.url);
+    static __dirname = path.dirname(this.__filename);
 
-    ModelsDb = new SQLite3.Database(join(this.__dirname, '../Databases/models.db'));
+    static ModelsDb = new SQLite3.Database(join(DbInfo.__dirname, '../Databases/models.db'));
 
     static CurrentTable
+    static ColumnNames
 
-    getTables = async _ => {
+    static getTables = async _ => {
         return new Promise(resolve => {
-            this.ModelsDb.serialize(_ => {
+            DbInfo.ModelsDb.serialize(_ => {
                 const query = `SELECT name FROM sqlite_master WHERE type='table'`
-                this.ModelsDb.all(query, (err, tables) => {
+                DbInfo.ModelsDb.all(query, (err, tables) => {
                     if (err) {
                         console.log(err)
                         return
@@ -30,11 +31,11 @@ export default class DbInfo {
         })
     }
 
-    getColumnNames = async (tableName) => {
+    static getColumnNames = async (tableName) => {
         return new Promise(resolve => {
-            this.ModelsDb.serialize(_ => {
+            DbInfo.ModelsDb.serialize(_ => {
                 const query = `PRAGMA table_info(${tableName})`
-                this.ModelsDb.all(query, (err, columns) => {
+                DbInfo.ModelsDb.all(query, (err, columns) => {
                     if (err) {
                         console.log(err)
                         return
@@ -46,6 +47,7 @@ export default class DbInfo {
                     columns.forEach(column => {
                         columnNames.push(column.name[0].toUpperCase() + column.name.slice(1))
                     })
+                    DbInfo.ColumnNames = columnNames
                     
                     resolve(columnNames)
                 })

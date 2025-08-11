@@ -7,7 +7,6 @@ import DbInfo from '../Resources/dbQueries.js'
 import Config from '../Resources/config.js'
 
 const resources = new Resources();
-const dbInfo = new DbInfo()
 const config = new Config();
 
 const localhost = config.URL;
@@ -16,11 +15,10 @@ const htmlTemplates = resources.HtmlTemplates;
 const get = htmlTemplates.Get;
 const returnBackButton = resources.ReturnBackButton;
 
-const columnsName = resources.ColumnsName;
-
-const modelsDb = dbInfo.ModelsDb;
+const modelsDb = DbInfo.ModelsDb;
 
 let currentTable = DbInfo.CurrentTable
+let columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
 
 const crud = express()
 crud.use(helmet())
@@ -28,19 +26,22 @@ crud.use(express.json())
 crud.use(bodyParser.urlencoded({ extended: true }))
 crud.use(express.static('./public/'))
 
-function tableChange(){
-    currentTable = DbInfo.CurrentTable === currentTable ? currentTable : DbInfo.CurrentTable
+async function tableChange(){
+    if(DbInfo.CurrentTable === currentTable){
+        return;
+    }
+    currentTable = DbInfo.CurrentTable
+    columnsName = await Promise.resolve(DbInfo.getColumnNames(currentTable))
 }
 
 
-crud.all('/*', (req,res,next) =>{
-    console.log('always call');
+crud.all('/*', async (req,res,next) =>{
+    await tableChange()
     next()
 })
 
 //Gets all elements from the Models table
 crud.get('/', (req, res) => {
-    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.all(`SELECT ROWID, * FROM ${currentTable}`, (err, rows) => {
             if (err) {
@@ -54,7 +55,9 @@ crud.get('/', (req, res) => {
             crud.use(express.static('public/GETS'));
             let replacedRows = replaceRows(rows)
             let deleteId = replaceId(rows)
-            res.status(200).send(get.replace('{{%Content%}}', returnBackButton + replacedRows + deleteId))
+            let columns = replaceColumns()
+            res.status(200).send(get.replace('{{%Content%}}', replacedRows)
+                                    .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId))
             return
         })
     })
@@ -73,9 +76,8 @@ function filters(req, res, filter) {
         return
     }
 
-    tableChange()
     modelsDb.serialize(_ => {
-        modelsDb.all(`SELECT ROWID, * FROM Models WHERE ${filter} = $Field`,
+        modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ${filter} = $Field`,
             {
                 $Field: field
             }
@@ -108,7 +110,6 @@ crud.post('/', (req, res) => {
         $Mail: req.body.mail || null,
     };
 
-    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.run('INSERT INTO Models(name, surname, address, mail) VALUES ($Name, $Surname, $Address, $Mail)',
             jsonObject, (err) => {
@@ -130,7 +131,6 @@ crud.get('/Id=:id', (req, res) => {
     crud.use(express.static('./public/UPDATE'))
     let id = req.params.id
 
-    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.all('SELECT ROWID, * FROM Models WHERE ROWID = $Id', {
             $Id: id
@@ -182,7 +182,6 @@ crud.get('/update/Id=:id', (req, res) => {
         jsonObject[`$${columnsName[i]}`] = urlParams[i].split('=')[1] || null
     }
 
-    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.run(`UPDATE Models SET
         name = $Name,
@@ -215,7 +214,6 @@ crud.get('/update/Id=:id', (req, res) => {
 crud.get('/delete/Id=:id', (req, res) => {
     let id = req.params.id
 
-    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.run('DELETE FROM Models WHERE ROWID = $Id', {
             $Id: id
@@ -248,7 +246,6 @@ crud.get('/deleteMany/:ids', (req, res) => {
     let rowidsSelect = []
     ids.forEach(id => rowidsSelect.push(`ROWID = ${id}`))
 
-    tableChange()
     modelsDb.serialize(_ => {
         modelsDb.run(`DELETE FROM Models WHERE ${rowidsSelect.join(' OR ')}`,
             (err) => {
@@ -275,6 +272,14 @@ crud.get('/deleteMany/:ids', (req, res) => {
     })
 })
 
+function replaceColumns(){
+    let replacedColumns = []
+    columnsName.forEach(column =>{
+        replacedColumns.push(`<th class="column-name">${column}</th>`)
+    })
+    return replacedColumns
+}
+
 /**
  * 
  * @param {Array} rows Returned rows from the sql query
@@ -282,17 +287,19 @@ crud.get('/deleteMany/:ids', (req, res) => {
  */
 function replaceRows(rows) {
     let jsonTemplate = JSON.parse(JSON.stringify(rows))
-    let replacedRows = jsonTemplate.map(json => {
-        let outputRow = htmlTemplates.Content
-            .replace('{{%Name%}}', json.name)
-            .replace('{{%Surname%}}', json.surname)
-            .replace('{{%Address%}}', json.address)
-            .replace('{{%Mail%}}', json.mail)
-            .replace(/{{%Id%}}/g, json.rowid)
+    let values = Object.values(jsonTemplate)
+    let replacedRows = []
 
-        return outputRow
-    })
-    return replacedRows.join('');
+    for(let i = 0; i < values.length; i++){
+        let row = ""
+        for(let j = 0; j < columnsName.length; j++){
+            let columnName = `${columnsName[j].toLowerCase()}`
+            row += `<th>${values[i][columnName]}</th>`
+        }
+        replacedRows.push(htmlTemplates.Content.replace('{{%ROW%}}', row))
+    }
+
+    return replacedRows.join(' ');
 }
 
 /**
@@ -316,7 +323,7 @@ function replaceId(rows) {
 
         return outputRow
     })
-    return replacedRows.join('');
+    return replacedRows.join(' ');
 }
 
 export default crud;

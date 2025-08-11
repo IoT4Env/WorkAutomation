@@ -15,16 +15,15 @@ import DbInfo from './Resources/dbQueries.js'
 
 const config = new Config();
 const resources = new Resources();
-const dbInfo = new DbInfo()
 
 const SERVER_PORT = config.SERVER_PORT
 const SERVER_HOSTNAME = config.SERVER_HOSTNAME
 const localhost = config.URL;
 
-const modelsDb = dbInfo.ModelsDb;
+const modelsDb = DbInfo.ModelsDb;
 
-let tables = await Promise.resolve(dbInfo.getTables())
-let columnNames = await Promise.resolve(dbInfo.getColumnNames(tables[0].name))
+let tables = await Promise.resolve(DbInfo.getTables())
+let columnNames = await Promise.resolve(DbInfo.getColumnNames(tables[0].name))
 
 let currentTable = tables[0].name
 let currentFilter = columnNames[0].toLowerCase()

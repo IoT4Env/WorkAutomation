@@ -6,9 +6,8 @@ import DbInfo from '../Resources/dbQueries.js'
 
 
 const resources = new Resources();
-const dbInfo = new DbInfo()
 
-const modelsDb = dbInfo.ModelsDb
+const modelsDb = DbInfo.ModelsDb
 let lastFilter
 
 const frontBack = express()
@@ -20,7 +19,7 @@ frontBack.get('/update/:tableName', (req,res) =>{
 })
 
 frontBack.get('/columns/:tableName', async (req, res) => {
-    res.status(200).send(await Promise.resolve(dbInfo.getColumnNames(req.params.tableName)));
+    res.status(200).send(await Promise.resolve(DbInfo.getColumnNames(req.params.tableName)));
     return
 })
 
