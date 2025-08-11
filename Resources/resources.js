@@ -17,6 +17,7 @@ export default class Resources {
         Get: readFileSync(join(this.__dirname, '../public/GETS/gets.html'), 'utf-8'),
         Post: readFileSync(join(this.__dirname, '../public/POST/post.html'), 'utf-8'),
         Update: readFileSync(join(this.__dirname, '../public/UPDATE/update.html'), 'utf-8'),
+        UpdateRes: readFileSync(join(this.__dirname,'../public/UPDATE/updateRes.html'), 'utf-8'),
         Delete: readFileSync(join(this.__dirname, '../public/DELETE/delete.html'), 'utf-8')
     }
 
