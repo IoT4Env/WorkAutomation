@@ -1,33 +1,29 @@
 import express from 'express'
-import SQLite3 from 'sqlite3';
-import path, { join } from 'path';
-import { fileURLToPath } from 'url';
 import fs from 'fs'
 
 import storage from '../Resources/storage.js'
+import InitialData from '../initialData.js'
+import Resources from '../Resources/resources.js'
 
+const initialData = new InitialData();
+const resources = new Resources();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const htmlTemplates = resources.HtmlTemplates;
+const returnBack = resources.ReturnBackButton
 
-let htmlPostResponseTemplate = fs.readFileSync(join(__dirname.replace('Routes', '')) + '/public/POST/POST.html', 'utf-8')
-
-let returnBackButton = `<button><a href="/">BACK</a></button>`;
+const modelsDb = resources.ModelsDb;
 
 const fileUpload = express();
 
-const modelliDB = new SQLite3.Database(join(__dirname.replace('/Routes', '/') + 'Database/modelli.db'))
-
-fileUpload.post('/sql', storage.single('uploaded-file'), (req, res) => {
-    const filePath = req.file.path
-    const query = fs.readFileSync(filePath, 'utf-8')
+//Upload query sql from proper file
+fileUpload.post('/sql', storage.single('uploaded-sql-query'), (req, res) => {
+    const sqlPath = req.file.path
+    const query = fs.readFileSync(sqlPath, 'utf-8')
         .trim()
 
-    console.log(query);
-
-    fs.rmSync(filePath);
-    modelliDB.serialize(_ => {
-        modelliDB.run(query, (err) => {
+    fs.rmSync(sqlPath);
+    modelsDb.serialize(_ => {
+        modelsDb.run(query, (err) => {
             if (err) {
                 const errorObj = {
                     "Code": 3,
@@ -36,10 +32,18 @@ fileUpload.post('/sql', storage.single('uploaded-file'), (req, res) => {
                 res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                 return;
             }
-            res.status(201).send(htmlPostResponseTemplate + returnBackButton)
+            res.status(201).send(htmlTemplates.Post + returnBack)
             return;
         })
     })
+})
+
+//Migrate ods file uploaded by the user
+fileUpload.post('/ods', storage.single('uploaded-ods'), (req,res) =>{
+    const odsPath = req.file.path
+    initialData.initialData(odsPath)
+    fs.rmSync(odsPath);
+    res.status(201).send('Sql query is ready to be executed' + returnBack)
 })
 
 export default fileUpload;

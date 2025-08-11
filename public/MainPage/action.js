@@ -1,4 +1,4 @@
-const nomiDDL = document.getElementById('Nomi'),
+const names = document.getElementById('names'),
     getLink = document.getElementById('GET-Link'),
     inputs = document.getElementsByTagName('input')
 
@@ -15,16 +15,17 @@ for (let i = 0; i < inputs.length - 1; i++) {
 let previusName,
     linkString = getLink.getAttribute('href')
 
-nomiDDL.addEventListener('change', _ => {
-    if (nomiDDL.value !== 'OPTIONS') {
-        if (!linkString.includes('_Nome_')) {
-            getLink.setAttribute('href', linkString.replace(previusName, nomiDDL.value))
+names.addEventListener('change', _ => {
+    if (names.value !== 'OPTIONS') {
+        if (!linkString.includes('_Name_')) {
+            getLink.setAttribute('href', linkString.replace(previusName, names.value))
         }
-        getLink.setAttribute('href', linkString.replace('_Nome_', nomiDDL.value))
+        getLink.setAttribute('href', linkString.replace('_Name_', names.value))
 
     } else {
-        getLink.setAttribute('href', linkString.replace(previusName, '_Nome_'))
+        getLink.setAttribute('href', linkString.replace(previusName, '_Name_'))
     }
-    previusName = nomiDDL.value
+    console.log(names.value);
+    previusName = names.value
 })
 //#endregion
