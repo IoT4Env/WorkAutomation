@@ -17,6 +17,7 @@ deleteSelected.addEventListener('click', _=>{
 
     //operations required for url Filter=Field
     const currentWindow = window.location.href
+    //returns http://<HOST_NAME>:<PORT>/CRUD
     const splitResources = currentWindow.split('/').splice(0, 4);
     const assembledUrl = splitResources.join('/')
     fetch(`${assembledUrl}/deleteMany/${checkedJson}`)
