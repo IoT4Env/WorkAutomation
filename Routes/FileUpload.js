@@ -18,6 +18,7 @@ const fileUpload = express();
 fileUpload.use(helmet())
 
 //Upload query sql from proper file
+//we should handle the sql execution automatically on ods file upload
 fileUpload.post('/sql', storage.single('uploaded-sql-query'), (req, res) => {
     const sqlPath = req.file.path
     const query = fs.readFileSync(sqlPath, 'utf-8')
@@ -46,6 +47,7 @@ fileUpload.post('/ods', storage.single('uploaded-ods'), (req,res) =>{
     initialData.initialData(odsPath)
     fs.rmSync(odsPath);
     res.status(201).send('Sql query is ready to be executed' + returnBack)
+    return
 })
 
 export default fileUpload;

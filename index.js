@@ -7,6 +7,7 @@ import handleError from './Views/handleError.js';
 import fileUpload from './Routes/FileUpload.js';
 import menu from './Routes/menu.js'
 import fetchResources from './Views/fetchResources.js'
+import queries from './Routes/initialDataQuery.js'
 
 import Resources from './Resources/resources.js'
 import Config from './Resources/config.js'
@@ -29,8 +30,9 @@ app.use('/CRUD', crud)
 app.use('/FileUpload', fileUpload)
 app.use('/Images', image)
 app.use('/handleError', handleError)
-app.use('/fetchResources', fetchResources)
 app.use('/menu', menu)
+app.use('/fetchResources', fetchResources)
+app.use('/queries', queries)
 
 
 app.listen(SERVER_PORT, SERVER_HOSTNAME, _ => {
