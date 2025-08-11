@@ -19,10 +19,11 @@ frontBack.get('/columns/:tableName', async (req, res) => {
     return
 })
 
-frontBack.get('/filters/:filter', (req, res) => {
+frontBack.get('/filters/:filter/tables/:table', (req, res) => {
     const selectedFilter = req.params.filter
+    const table = req.params.table
     modelsDb.serialize(_ => {
-        modelsDb.all(resources.SqlQueries.GetByField(selectedFilter), (err, rows) => {
+        modelsDb.all(resources.SqlQueries.GetByField(selectedFilter, table), (err, rows) => {
             if (err) {
                 console.log(err);
                 const errorObj = {

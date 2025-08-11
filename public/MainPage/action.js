@@ -24,9 +24,38 @@ let linkString = getLink.getAttribute('href')
 getLink.setAttribute('href', linkString.replace('Field', field.value).replace('Filter', filter.value))
 
 
+//below region contains repeated code
 //#region Configure main page based on table selected
-tableSelection.addEventListener('change', _=>{
+tableSelection.addEventListener('change', async _ => {
     tableSelected = tableSelection.value
+
+    await fetch(`${window.location.href}fetchResources/columns/${tableSelected}`).then(res => {
+        res.text().then(text => {
+            columns = JSON.parse(text);
+
+            let updataedFilters = []
+            columns.forEach(column =>{
+                updataedFilters.push(`<option>${column}</option>`)
+            })
+            filter.innerHTML = updataedFilters
+        })
+    })
+
+    await fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}/tables/${tableSelected}`)
+        .then(res => res.text().then(fields =>{
+            fieldsArr = JSON.parse(fields);
+
+            let uniqueFields = []
+            fieldsArr.map(field => {
+                if (!uniqueFields.includes(field))
+                    uniqueFields.push(field)
+            })
+
+            field.innerHTML = uniqueFields.join(',')
+            getLink.setAttribute('href', linkString
+                .replace('Filter', filter.value)
+                .replace('Field', field.value))
+        }))
 })
 //#endregion
 
@@ -46,8 +75,8 @@ field.addEventListener('change', _ => {
         .replace('Field', field.value))
 })
 
-filter.addEventListener('change', _ => {
-    fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}`)
+filter.addEventListener('change', async _ => {
+    await fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}/tables/${tableSelected}`)
         .then(res => {
             res.text().then(fields => {
                 fieldsArr = JSON.parse(fields);
