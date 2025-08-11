@@ -1,7 +1,11 @@
 const deletes = document.querySelectorAll('.delete-many'),
     deletesLink = document.querySelector('#delete-many-link'),
     deleteSelected = document.querySelector('#delete-selected'),
-    cancelButton = document.querySelectorAll('.cancel')
+    cancelButton = document.querySelectorAll('.cancel'),
+    deleteImgs = document.querySelectorAll('.delete-image'),
+    dialogBoxes = document.querySelectorAll('.confirm-delete-box'),
+    deleteId = document.querySelectorAll('.delete-id'),
+    deleteImageLink = document.querySelectorAll('#delete-image-link')
 
 
 const linkString = deletesLink.getAttribute('href');
@@ -33,6 +37,44 @@ function checkDelete(del) {
     }
 }
 
+//#endregion
+
+//#region ConfirmDeletion
+const origin = window.location.origin
+let configuration
+
+//add delete link on image if settings are configured to do so
+(async () => {
+    configuration = await getMenuConfig();
+})().finally(_ => {//on completed fetch
+    if (!configuration.Settings) {
+        for (let i = 0; i < deleteImgs.length; i++) {
+            deleteImgs[i].removeEventListener('click', eventDeleteImgs)
+            deleteImageLink[i].setAttribute('href', deleteId[i].getAttribute('href'))
+        }
+    } else {
+        for (let i = 0; i < deleteImgs.length; i++) {
+            deleteImgs[i].addEventListener('click', _ => eventDeleteImgs(dialogBoxes[i]))
+
+            cancelButton[i].addEventListener('click', _ => {
+                dialogBoxes[i].style.visibility = 'hidden'
+                dialogBoxes[i].children.item(0).style.visibility = 'hidden'
+                //item(0) because it refers to the div containing the confirm content
+            })
+        }
+    }
+})
+
+async function getMenuConfig() {
+    let response = await fetch(`${origin}/fetchResources/menuConfig`, { method: 'GET' })
+    return await response.json()
+}
+
+let eventDeleteImgs = (dialog) => {
+    dialog.style.visibility = 'visible'
+    dialog.children.item(0).style.visibility = 'visible'
+    //item(0) because it refers to the div containing the confirm content
+}
 //#endregion
 
 deleteSelected.addEventListener('click', _ => {
