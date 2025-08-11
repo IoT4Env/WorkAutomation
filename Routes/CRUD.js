@@ -44,6 +44,11 @@ crud.get('/', (req, res) => {
 crud.get('/Nome=:Nome', (req, res) => {
     let nome = req.params.Nome
 
+    if (nome.includes('_')) {
+        res.status(400).send(`Name not specified ${returnBackButton}`)
+        return
+    }
+
     modelliDB.serialize(_ => {
         modelliDB.all('SELECT ROWID, * FROM Modelli WHERE Nome = $Nome',
             {
