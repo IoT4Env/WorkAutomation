@@ -53,17 +53,17 @@ app.get('', async (req, res) => {
                 filters.push(`<option>${column}</option>`)
             })
 
-            let fields = []
+            let uniqueFields = []
             //might be duplicates
             rows.map(json => {
-                if (!fields.includes(`<option>${json[currentFilter]}</option>`))
-                    fields.push(`<option>${json[currentFilter]}</option>`)
+                if (!uniqueFields.includes(`<option>${json[currentFilter]}</option>`))
+                    uniqueFields.push(`<option>${json[currentFilter]}</option>`)
             })
             app.use(express.static('public/MainPage'));
             return res.status(200).send(
                 resources.HtmlTemplates.Index
                     .replace('{{%FILTER%}}', filters)
-                    .replace('{{%FIELD%}}', fields))
+                    .replace('{{%FIELD%}}', uniqueFields))
         })
     })
 })

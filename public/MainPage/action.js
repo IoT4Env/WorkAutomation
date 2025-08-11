@@ -5,7 +5,7 @@ const field = document.querySelector('#field'),
     fileInputs = document.querySelectorAll('input[type=file]')
 
 let columns = []
-let filedsArr;
+let fieldsArr;
 
 //gather data from back end when needed
 window.onload = async () => {
@@ -40,9 +40,16 @@ field.addEventListener('change', _ => {
 filter.addEventListener('change', _ => {
     fetch(`${window.location.href}fetchResources/filters/${filter.value.toString().toLowerCase()}`)
         .then(res => {
-            res.text().then(filedsRes => {
-                filedsArr = JSON.parse(filedsRes);
-                field.innerHTML = filedsArr.join(',')
+            res.text().then(fields => {
+                fieldsArr = JSON.parse(fields);
+
+                let uniqueFields = []
+                fieldsArr.map(field => {
+                    if (!uniqueFields.includes(field))
+                        uniqueFields.push(field)
+                })
+
+                field.innerHTML = uniqueFields.join(',')
                 getLink.setAttribute('href', linkString
                     .replace('Filter', filter.value)
                     .replace('Field', field.value))
