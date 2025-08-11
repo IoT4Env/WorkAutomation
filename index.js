@@ -53,9 +53,8 @@ app.get('', async (req, res) => {
             if (err) {
                 const errorObj = {
                     "Code": 1,
-                    "Body": err
+                    "Body": err.message
                 }
-                console.log(err);
 
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return;
@@ -63,10 +62,7 @@ app.get('', async (req, res) => {
 
             DbInfo.updateTable(currentTable)
 
-            let filters = []
-            columnNames.forEach(column => {
-                filters.push(`<option>${column}</option>`)
-            })
+            let filters = columnNames.map(column => `<option>${column}</option>`)
 
             let uniqueFields = []
             //might be duplicates
@@ -74,20 +70,15 @@ app.get('', async (req, res) => {
                 if (!uniqueFields.includes(`<option>${json[currentFilter]}</option>`))
                     uniqueFields.push(`<option>${json[currentFilter]}</option>`)
             })
+
             app.use(express.static('public/MainPage'));
             app.use(express.static('public/HamburgerMenu'));
 
-            let tablesOption = []
-            tables.forEach(table => {
-                tablesOption.push(`<option>${table.name}</option>`)
-            })
+            let tablesOption = tables.map(table => `<option>${table.name}</option>`)
 
-            let formFields = []
-            columnNames.forEach(column =>{
-                formFields.push(`<label>${column}
+            let formFields = columnNames.map(column => `<label>${column}
                         <input type="text" name="${column.toLowerCase()}" required>
                         </label>`)
-            })
 
             return res.status(200).send(
                 resources.HtmlTemplates.Index

@@ -59,7 +59,7 @@ crud.get('/', (req, res) => {
             if (err) {
                 const errorObj = {
                     Code: 1,
-                    Body: err
+                    Body: err.message
                 }
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
@@ -89,59 +89,40 @@ function filters(req, res, filter) {
     }
 
     modelsDb.serialize(_ => {
-        modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ${filter} = $Field`,
-            {
-                $Field: field
-            }
-            , (err, rows) => {
-                if (err) {
-                    console.log(err);
-                    const errorObj = {
-                        Code: 1,
-                        Body: err
-                    }
-                    res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
-                    return
+        modelsDb.all(`SELECT ROWID, * FROM ${currentTable} WHERE ${filter} = ${field}`,(err, rows) => {
+            if (err) {
+                console.log(err);
+                const errorObj = {
+                    Code: 1,
+                    Body: err.message
                 }
-
-                let replacedRows = replaceRows(rows)
-                let deleteId = replaceId(rows)
-                let columns = replaceColumns()
-                res.status(200).send(get.replace('{{%Content%}}', replacedRows)
-                                        .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId))
-                })
+                res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
+            }
+
+            let replacedRows = replaceRows(rows)
+            let deleteId = replaceId(rows)
+            let columns = replaceColumns()
+            res.status(200).send(get.replace('{{%Content%}}', replacedRows)
+                                    .replace('{{%COLUMNS%}}', columns + returnBackButton + deleteId))
+            })
+            return
     })
 }
 
 //Insert data in the Models table
 crud.post('/', (req, res) => {
     crud.use(express.static('./public/POST'))
-    let jsonObject = {};
-
-    //construct the json object with column names and associated value
-    columnsName.forEach(column => {
-        jsonObject[column] = req.body[column.toLowerCase()]
-    })
-
-    //extracts columns from json
-    const columns = Object.keys(jsonObject).map(column =>{
-        return column.toLowerCase()
-    }).join(',')
-
-    //extracts values from json
-    const values = Object.values(jsonObject).map(value =>{
-        return `"${value}"`
-    }).join(',')
+    const {Columns, Values} = jsonQueryInfo(req)
 
     modelsDb.serialize(_ => {
-        let query = `INSERT INTO ${currentTable} (${columns}) VALUES (${values})`
+        let query = `INSERT INTO ${currentTable} (${Columns.join(',')}) VALUES (${Values.join(',')})`
         modelsDb.run(query,//dynamic insert query achived!
             (err) => {
                 if (err) {
                     const errorObj = {
-                        "Code": 0,
-                        "Body": err.message
+                        Code: 0,
+                        Body: err.message
                     }
                     res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                     return
@@ -161,7 +142,7 @@ crud.get('/Id=:id', (req, res) => {
             if (err) {
                 const errorObj = {
                     Code: 1,
-                    Body: err
+                    Body: err.message
                 }
                 res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                 return
@@ -181,27 +162,11 @@ crud.get('/Id=:id', (req, res) => {
 //The updated data replaces the old data
 crud.post('/update/Id=:id', (req, res) => {
     const id = req.params.id
-    let jsonObject = {};
-
-    //construct the json object with column names and associated value
-    columnsName.forEach(column => {
-        jsonObject[column] = req.body[column.toLowerCase()]
-    })
-
-    //extracts columns from json
-    const columns = Object.keys(jsonObject).map(column =>{
-        return column.toLowerCase()
-    })
-
-    //extracts values from json
-    const values = Object.values(jsonObject).map(value =>{
-        return `"${value}"`
-    })
+    const {Columns, Values} = jsonQueryInfo(req)
 
     let keyValue = []
-    for(let i = 0; i < columnsName.length; i++){
-        keyValue.push(`${columns[i]} = ${values[i]}`)
-    }
+    for(let i = 0; i < columnsName.length; i++)
+        keyValue.push(`${Columns[i]} = ${Values[i]}`)
 
     modelsDb.serialize(_ => {
         let query = `UPDATE ${currentTable} 
@@ -211,10 +176,9 @@ crud.post('/update/Id=:id', (req, res) => {
         modelsDb.run(query,
         async (err) => {
                 if (err) {
-                    console.log(err.message);
                     const errorObj = {
                         Code: 2,
-                        Body: err
+                        Body: err.message
                     }
                     res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                     return
@@ -242,7 +206,7 @@ crud.get('/delete/Id=:id', (req, res) => {
             if (err) {
                 const errorObj = {
                     Code: 3,
-                    Body: err
+                    Body: err.message
                 }
                 res.redirect(`/handleError/:${JSON.stringify(errorObj)}`)
                 return;
@@ -273,7 +237,7 @@ crud.get('/deleteMany/:ids', (req, res) => {
                 if (err) {
                     const errorObj = {
                         Code: 3,
-                        Body: err
+                        Body: err.message
                     }
                     res.redirect(`/handleError/${JSON.stringify(errorObj)}`)
                     return;
@@ -292,6 +256,31 @@ crud.get('/deleteMany/:ids', (req, res) => {
             })
     })
 })
+
+/**
+ * 
+ * @param {Object} req The request body of a post request to extract data from
+ * @returns A new json containing column names and values as array properties
+ */
+function jsonQueryInfo(req){
+    let jsonObject = {};
+
+    //construct the json object with column names and associated value
+    columnsName.forEach(column => jsonObject[column] = req.body[column.toLowerCase()])
+
+    let queryInfo = {}
+
+    //extracts columns from json
+    const columns = Object.keys(jsonObject).map(column => column.toLowerCase())
+
+    //extracts values from json
+    const values = Object.values(jsonObject).map(value => `"${value}"`)
+
+    queryInfo["Columns"] = columns
+    queryInfo["Values"] = values
+
+    return queryInfo
+}
 
 /**
  * 
