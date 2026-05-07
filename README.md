@@ -1,3 +1,7 @@
+# MOVED TO CODEBERG
+
+[WorkAutomation](https://codeberg.org/IoT4Env/WorkAutomation.git)
+
 # Preview: The project
 
 The core idea came out from a real world need:
